@@ -69,10 +69,10 @@ A pasta `src/services/` poderá abrigar integrações futuras, mas **não existe
 |---|---|---|
 | 1. Base compartilhada, navegação e integração | **Lucca Felipe** | **Base Expo e README publicados.** Evoluir a Home, implementar a navegação principal, padronizar os PRs e integrar os módulos da equipe. |
 | 2. Identificação e cadastro de pacientes | **Abel Piassa** | Desenvolver busca, estados de consulta, formulário e validações, como primeira etapa do **Novo pedido**; sem simular registros persistidos. |
-| 3. Novo pedido e prescrição | **A definir** | Estruturar as etapas, prescrição de primeira/segunda malha, campos, validações e avanço/retorno; confirmar regras com o CTQ. |
-| 4. Boneco anatômico e catálogo | **A definir** | Implementar frente/costas, seleção da região anatômica e associação às malhas, usando o HTML v2 como referência visual e catálogo validado. |
-| 5. Medidas e anexos | **A definir** | Criar formulários dinâmicos para os sete gabaritos e estrutura de anexos, sujeitos à validação clínica e à política de dados do HU. |
-| 6. Acompanhamento, fornecedor, prova e ajuste | **A definir** | Desenvolver visualização de status e detalhes do pedido, fluxo do fornecedor, recebimento, prova, ajuste e registro administrativo. |
+| 3. Novo pedido e prescrição | **Ana Júlia** | Estruturar as etapas, prescrição de primeira/segunda malha, campos, validações e avanço/retorno; confirmar regras com o CTQ. |
+| 4. Boneco anatômico e catálogo | **Ana Fernandes** | Implementar frente/costas, seleção da região anatômica e associação às malhas, usando o HTML v2 como referência visual e catálogo validado. |
+| 5. Medidas e anexos | **Ana Mantella** | Criar formulários dinâmicos para os sete gabaritos e estrutura de anexos, sujeitos à validação clínica e à política de dados do HU. |
+| 6. Acompanhamento, fornecedor, prova e ajuste | **Matheus Albertini** | Desenvolver visualização de status e detalhes do pedido, fluxo do fornecedor, recebimento, prova, ajuste e registro administrativo. |
 
 **Essas frentes representam responsabilidades, não funcionalidades prontas.** Os responsáveis das frentes 3 a 6 precisam ser definidos pela equipe. Autenticação, banco de dados, segurança, testes e integração exigirão planejamento e trabalho compartilhados.
 
