@@ -1,0 +1,34 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= titulo %> | BurnCare</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <header class="header">
+    <h1><%= titulo %></h1>
+    <p>Hospital Universitário de Londrina — CTQ</p>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h2>Lista de Pacientes</h2>
+
+      <% pacientes.forEach((paciente) => { %>
+        <p>
+          <strong>Nome:</strong> <%= paciente.nome %>
+        </p>
+        <p>
+          <strong>Prontuário:</strong> <%= paciente.prontuario %>
+        </p>
+      <% }); %>
+
+    </section>
+  </main>
+
+</body>
+</html>
