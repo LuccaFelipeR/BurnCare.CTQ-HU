@@ -1,0 +1,11 @@
+{
+  "expo": {
+    "name": "BurnCare",
+    "slug": "burncare-ctq-hu",
+    "version": "1.0.0",
+    "userInterfaceStyle": "light",
+    "web": {
+      "name": "BurnCare"
+    }
+  }
+}
