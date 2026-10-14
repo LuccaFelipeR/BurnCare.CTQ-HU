@@ -1,148 +1,110 @@
-# BurnCare - CTQ HU
+# BurnCare — CTQ HU | EQ-10
 
-Projeto acadêmico da EQ-10 para ajudar no controle de malhas compressivas do Centro de Tratamento de Queimados (CTQ) do Hospital Universitário de Londrina.
+Sistema em desenvolvimento para organizar e acompanhar as solicitações de malhas compressivas do Centro de Tratamento de Queimados (CTQ) do Hospital Universitário de Londrina (HU).
 
-## Sobre o projeto
+> **Estado do projeto:** reconstrução inicial da interface com Expo SDK 57 e React Native Web. O protótipo validado pelo CTQ orienta telas e fluxo, mas **não** é o sistema pronto. Ainda não há cadastro persistente de pacientes, pedidos reais, autenticação, backend clínico nem banco de dados integrado. Não usar dados reais de pacientes nesta fase.
 
-A proposta é registrar e acompanhar pedidos de malhas compressivas, medidas dos pacientes, confecção, recebimento, entrega e possíveis ajustes.
+## Objetivo e fluxo do BurnCare
 
-O protótipo visual já foi apresentado e validado com o CTQ. O sistema ainda está em desenvolvimento.
+A unidade central do sistema é o **pedido de malha**, acompanhado do início ao encerramento. A navegação principal prevista para a equipe CTQ é **Visão geral**, **Novo pedido** e **Histórico de pedidos**. Pacientes, corpo, produtos e medidas são etapas e componentes do fluxo, não necessariamente menus independentes.
 
-## Tecnologias
+1. **Novo pedido — identificação:** localizar o paciente no cadastro autorizado; se não existir, cadastrar e continuar. A busca real depende de persistência de dados.
+2. **Prescrição e seleção:** identificar se é primeira ou segunda malha, escolher as regiões no corpo anatômico e selecionar as malhas correspondentes, conforme catálogo validado pelo CTQ.
+3. **Medidas e anexos:** preencher o gabarito relativo a cada produto; existem sete modelos documentados, com campos obrigatórios e políticas de fotografias ainda sujeitos a confirmação do CTQ.
+4. **Conferência e envio:** revisar dados, registrar os responsáveis e encaminhar a solicitação à confecção. A prescrição e a coleta das medidas podem ocorrer por profissionais diferentes e em momentos diferentes; futuramente será necessário salvar e retomar o andamento.
+5. **Fornecedor e rastreamento:** confirmar o recebimento, registrar produção, postagem e acompanhamento da entrega ao HU, com acesso restrito aos dados necessários à confecção.
+6. **Recebimento e prova no CTQ:** conferir a malha, registrar a prova e, se estiver adequada, entregar ao paciente com recibo e registro do encaminhamento administrativo.
+7. **Ajustes:** caso necessário, registrar a correção, novas medidas e logística reversa, mantendo o **mesmo pedido original**; após o retorno da confecção, realizar nova conferência e prova.
 
-- Node.js
-- Express
-- EJS
-- JavaScript, HTML e CSS
-- PostgreSQL (ainda será implementado)
+**Atenção:** uma **segunda malha** é uma nova solicitação prescrita; **ajuste** é retrabalho vinculado à solicitação original. O BurnCare deve **registrar o encaminhamento administrativo**, sem executar pagamentos, lançamentos ESTHOS ou emissão de OPM.
 
-O projeto usa o padrão MVC (Model, View e Controller). A ideia é manter os arquivos separados por função, sem complicar a estrutura.
+## Tecnologia atual e limites
 
-## Como iniciar o projeto
+- **Interface:** React Native + Expo SDK 57 + React Native Web.
+- **Linguagem:** JavaScript com JSX (`View`, `Text`, `TextInput`, `Pressable` etc.).
+- **Estilização:** `StyleSheet.create()`.
+- **Ambiente:** navegador no computador, com possibilidade de instalação como PWA **a implementar e validar**.
+- **Persistência, autenticação e API:** **não implementadas na reconstrução atual**. A arquitetura segura para dados clínicos deverá ser definida com a equipe e aprovada pelo HU/TI, seguindo a LGPD. Não conectar banco clínico diretamente ao frontend.
 
-É necessário ter o Git e o Node.js instalados no computador.
+Não utilizar Express/EJS na nova interface. O histórico dessas tecnologias permanece recuperável nos commits antigos do GitHub.
 
-1. Abra o terminal e clone o repositório:
+## Como executar localmente
 
-```bash
-git clone https://github.com/LuccaFelipeR/BurnCare.CTQ-HU.git
-```
-
-2. Entre na pasta:
-
-```bash
-cd BurnCare.CTQ-HU
-```
-
-3. Instale as dependências:
+Pré-requisitos: Git, Node.js e npm instalados.
 
 ```bash
+# Após clonar e entrar no repositório:
 npm install
+npm run web
 ```
 
-4. Inicie o servidor:
+Abra o endereço local informado pelo Expo no terminal (a porta pode variar). Para encerrar, use `Ctrl + C`.
 
-```bash
-npm run dev
-```
+O comando `npm run web` inicia **somente a interface**, não um serviço clínico completo. Os demais comandos Expo (`npm start`, `npm run android` e `npm run ios`) dependem do ambiente/dispositivo e da configuração existente.
 
-5. Abra no navegador: http://localhost:3000
-
-Para parar o servidor, pressione `Ctrl + C` no terminal.
-
-Também é possível iniciar usando `npm start`, mas nesse modo o servidor não reinicia automaticamente quando o código muda.
-
-**Importante:** estas instruções consideram a versão MVC integrada à branch `main`.
-
-## Organização dos arquivos
+## Organização do código
 
 ```text
 BurnCare.CTQ-HU/
-|-- app.js
-|-- src/
-|   |-- controllers/
-|   |   `-- homeController.js
-|   |-- routes/
-|   |   `-- homeRoutes.js
-|   |-- views/
-|   |   `-- home.ejs
-|   `-- public/
-|       `-- css/
-|           `-- style.css
-|-- package.json
-|-- package-lock.json
-|-- .gitignore
-`-- README.md
+├── App.js                 # Entrada da interface; carrega as páginas
+├── index.js               # Registro do aplicativo no Expo
+├── app.json               # Configuração Expo
+├── src/
+│   ├── pages/
+│   │   └── Home.js        # Visão geral — base em desenvolvimento
+│   └── services/           # Integrações futuras; não pressupõe API pronta
+├── package.json
+├── package-lock.json
+├── .gitignore
+└── README.md
 ```
 
-- `app.js`: inicia o servidor e configura as rotas.
-- `routes`: define os endereços das páginas.
-- `controllers`: recebe as requisições e prepara os dados para as páginas.
-- `views`: contém as páginas EJS.
-- `public`: contém CSS, imagens e JavaScript do navegador.
-- `models`: será criada quando começarmos a trabalhar com o banco de dados.
+Novas páginas e componentes devem ser criados apenas conforme o trabalho exigir. `node_modules/` e `.expo/` são arquivos gerados localmente; não devem ser versionados.
 
-Por enquanto, apenas a página inicial está funcionando. As outras partes serão desenvolvidas pela equipe.
+## Divisão inicial de trabalho — seis frentes
 
-## Divisão de atividades da EQ-10
+| Frente | Responsável | Primeira entrega a desenvolver |
+|---|---|---|
+| 1. Base compartilhada, navegação e integração | **Lucca Felipe** | Publicar a base Expo com Home funcional, README atualizado e padrão de PRs; definir integração dos módulos |
+| 2. Identificação e cadastro de pacientes | **Abel Piassa** | Componente de busca, estado “não localizado” e formulário de cadastro, integrados ao fluxo Novo pedido; sem simular registros persistidos |
+| 3. Novo pedido e prescrição | **A definir** | Estrutura das etapas, primeira/segunda malha, campos e avanço/retorno; regras ainda a confirmar com CTQ |
+| 4. Boneco anatômico e catálogo | **A definir** | Frente/costas, seleção de região e associação às malhas; aproveitar a referência visual do HTML v2 |
+| 5. Medidas e anexos | **A definir** | Formulários dinâmicos para os sete gabaritos e elementos de anexo, aguardando validações clínicas |
+| 6. Acompanhamento, fornecedor, prova e ajuste | **A definir** | Fluxo de status e detalhes do pedido, recebimento, prova, ajuste e registro administrativo |
 
-A proposta é que cada integrante fique responsável principalmente por uma área, desenvolvendo suas rotas, controllers e páginas quando necessário. A divisão definitiva deve ser combinada entre os seis integrantes.
+**Não significa que essas frentes já estejam implementadas.** Os responsáveis das quatro frentes restantes precisam ser confirmados pela equipe. Autenticação, banco de dados, segurança e testes transversais exigirão planejamento compartilhado.
 
-| Área | Atividades principais | Responsável |
-| --- | --- | --- |
-| 1. Estrutura e integração | Organização das branches, conexão com o banco e integração dos módulos | Lucca Felipe |
-| 2. Usuários e acesso | Login, controle de sessão e permissões por perfil | A definir |
-| 3. Pacientes | Cadastro, edição, consulta e validação dos dados necessários | Abel |
-| 4. Solicitações | Registro e acompanhamento dos pedidos de malhas compressivas | A definir |
-| 5. Medidas | Gabaritos, medidas antropométricas e arquivos relacionados | A definir |
-| 6. Fornecedor e entregas | Acompanhamento da confecção, recebimento, entrega e ajustes | A definir |
+## Como colaborar sem conflitos
 
-Todos devem ajudar nos testes, na revisão do código e na documentação do que desenvolverem.
+1. **Lucca publica e integra primeiro a reconstrução Expo à `main`**, por Pull Request após testes. Até isso acontecer, os demais integrantes não devem começar a desenvolver em cima da antiga `main` Express/EJS.
+2. Depois do merge, cada integrante atualiza o repositório e cria sua própria branch:
 
-## Como trabalhar em equipe
+   ```bash
+   git switch main
+   git pull origin main
+   git switch -c feat/nome-do-modulo
+   ```
 
-Não vamos desenvolver diretamente na `main`. Cada tarefa deve ser feita em uma branch própria.
+3. Desenvolva em sua branch; teste e envie apenas os arquivos necessários. **Não envie** `.env`, credenciais, fotos ou dados reais de pacientes, `node_modules/` e `.expo/`.
+4. Publique a branch e abra um Pull Request direcionado à `main`, com o que foi feito, como testar e o que continua pendente.
+5. Não faça merge de branches antigas com Express/EJS diretamente na reconstrução. O trabalho anterior do módulo Pacientes do Abel deve ser consultado como referência e adaptado à nova base.
 
-Antes de começar uma tarefa:
+## Critério mínimo de conclusão de uma tarefa
 
-```bash
-git switch main
-git pull origin main
-git switch -c feat/nome-da-tarefa
-```
+Uma funcionalidade só deve ser marcada como pronta quando seu fluxo estiver implementado, testado e revisado. Não usar valores ou pacientes inventados para aparentar que há registros no sistema. Enquanto não houver backend, distinguir **tela construída** de **funcionalidade com gravação/consulta real**.
 
-Depois de terminar e testar:
+## Referências e decisões clínicas
 
-```bash
-git add .
-git commit -m "feat: descreve o que foi feito"
-git push -u origin feat/nome-da-tarefa
-```
+- **Protótipo HTML v2 e PDF de validação:** referência visual e de navegação.
+- **Dossiê da primeira reunião:** requisitos levantados com o CTQ.
+- **Fluxograma da rotina de solicitação de malhas:** sequência operacional e documentação necessária.
+- **Dados do Paciente, MEDIDAS, checklist e recibo:** campos e modelos a confrontar com a validação clínica.
 
-Em seguida, abra um Pull Request no GitHub para a equipe revisar antes de juntar as alterações à `main`.
+Não armazenar fotos clínicas, prontuários ou dados de saúde em repositório público, em prompts de IA ou em dispositivos sem autorização e segurança institucional. Decisões ainda não validadas devem ser identificadas como **pendentes de validação CTQ/HU**.
 
-Para correções pequenas, pode ser usado o prefixo `fix:`. Para documentação, `docs:`.
+## Acompanhamento
 
-## O que ainda falta
+- [Repositório GitHub](https://github.com/LuccaFelipeR/BurnCare.CTQ-HU)
+- [Trello da equipe EQ-10](https://trello.com/b/tF8cHTDq/burncare-eq-10-desenvolvimento)
 
-- Banco de dados PostgreSQL
-- Login e permissões
-- Cadastro de pacientes
-- Solicitação de malhas
-- Formulários de medidas
-- Acompanhamento do fornecedor e das entregas
-- Histórico de ajustes e outras etapas do processo
-- Testes e validação final com o CTQ
-
-O BurnCare não vai substituir os processos financeiros e administrativos já existentes no hospital (ESTHOS/OPM). A intenção é registrar o encaminhamento e o andamento dessas etapas quando fizer sentido para o fluxo.
-
-## Cuidados com os dados
-
-Não colocar no GitHub nomes, fotos, documentos ou outras informações reais de pacientes. Durante o desenvolvimento, usar somente dados fictícios.
-
-A forma de armazenar informações clínicas e os acessos ao sistema ainda precisa ser validada com o hospital.
-
-## Links
-
-- GitHub: https://github.com/LuccaFelipeR/BurnCare.CTQ-HU
-- Trello: https://trello.com/b/tF8cHTDq/burncare-eq-10-desenvolvimento
+> **Nota de transição:** este README foi preparado para substituir a documentação antiga Express/EJS **na branch de reconstrução Expo**. Enquanto o PR não for integrado, o `README.md` da `main` remota ainda descreve a arquitetura anterior.
