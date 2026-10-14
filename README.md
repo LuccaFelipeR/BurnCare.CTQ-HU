@@ -92,7 +92,7 @@ A proposta é que cada integrante fique responsável principalmente por uma áre
 | --- | --- | --- |
 | 1. Estrutura e integração | Organização das branches, conexão com o banco e integração dos módulos | Lucca Felipe |
 | 2. Usuários e acesso | Login, controle de sessão e permissões por perfil | A definir |
-| 3. Pacientes | Cadastro, edição, consulta e validação dos dados necessários | A definir |
+| 3. Pacientes | Cadastro, edição, consulta e validação dos dados necessários | Abel |
 | 4. Solicitações | Registro e acompanhamento dos pedidos de malhas compressivas | A definir |
 | 5. Medidas | Gabaritos, medidas antropométricas e arquivos relacionados | A definir |
 | 6. Fornecedor e entregas | Acompanhamento da confecção, recebimento, entrega e ajustes | A definir |
