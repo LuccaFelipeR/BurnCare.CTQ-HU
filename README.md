@@ -2,21 +2,21 @@
 
 Sistema em desenvolvimento para organizar e acompanhar as solicitações de malhas compressivas do Centro de Tratamento de Queimados (CTQ) do Hospital Universitário de Londrina (HU).
 
-> **Estado do projeto:** reconstrução inicial da interface com Expo SDK 57 e React Native Web. O protótipo validado pelo CTQ orienta telas e fluxo, mas **não** é o sistema pronto. Ainda não há cadastro persistente de pacientes, pedidos reais, autenticação, backend clínico nem banco de dados integrado. Não usar dados reais de pacientes nesta fase.
+> **Estado atual do projeto:** a interface inicial utiliza Expo SDK 57 e React Native Web. A `Home.js` contém a estrutura inicial da aplicação, enquanto `NovoPedido.js` ainda não possui implementação. O protótipo validado pelo CTQ orienta o desenvolvimento, mas **o sistema clínico ainda não está pronto**. Não existem cadastro persistente de pacientes, pedidos reais, autenticação, backend clínico ou banco de dados integrado. Não utilizar dados reais de pacientes nesta fase.
 
 ## Objetivo e fluxo do BurnCare
 
-A unidade central do sistema é o **pedido de malha**, acompanhado do início ao encerramento. A navegação principal prevista para a equipe CTQ é **Visão geral**, **Novo pedido** e **Histórico de pedidos**. Pacientes, corpo, produtos e medidas são etapas e componentes do fluxo, não necessariamente menus independentes.
+A unidade central do sistema é o **pedido de malha**, acompanhado do início ao encerramento. A navegação principal prevista para a equipe CTQ é **Visão geral**, **Novo pedido** e **Histórico de pedidos**. Pacientes, corpo, produtos e medidas são etapas e componentes desse fluxo, não menus independentes.
 
-1. **Novo pedido — identificação:** localizar o paciente no cadastro autorizado; se não existir, cadastrar e continuar. A busca real depende de persistência de dados.
-2. **Prescrição e seleção:** identificar se é primeira ou segunda malha, escolher as regiões no corpo anatômico e selecionar as malhas correspondentes, conforme catálogo validado pelo CTQ.
-3. **Medidas e anexos:** preencher o gabarito relativo a cada produto; existem sete modelos documentados, com campos obrigatórios e políticas de fotografias ainda sujeitos a confirmação do CTQ.
-4. **Conferência e envio:** revisar dados, registrar os responsáveis e encaminhar a solicitação à confecção. A prescrição e a coleta das medidas podem ocorrer por profissionais diferentes e em momentos diferentes; futuramente será necessário salvar e retomar o andamento.
-5. **Fornecedor e rastreamento:** confirmar o recebimento, registrar produção, postagem e acompanhamento da entrega ao HU, com acesso restrito aos dados necessários à confecção.
-6. **Recebimento e prova no CTQ:** conferir a malha, registrar a prova e, se estiver adequada, entregar ao paciente com recibo e registro do encaminhamento administrativo.
-7. **Ajustes:** caso necessário, registrar a correção, novas medidas e logística reversa, mantendo o **mesmo pedido original**; após o retorno da confecção, realizar nova conferência e prova.
+1. **Novo pedido — identificação:** localizar o paciente no cadastro autorizado; se não existir, cadastrar e continuar. Sem integração real de dados, a interface deve distinguir **“paciente não localizado”** de **“consulta indisponível”**.
+2. **Prescrição e seleção:** identificar se é primeira ou segunda malha, selecionar as regiões no corpo anatômico e escolher as malhas correspondentes, conforme catálogo validado pelo CTQ.
+3. **Medidas e anexos:** preencher o gabarito relativo a cada produto. Existem sete modelos documentados; campos obrigatórios e regras para fotografias dependem de confirmação do CTQ/HU.
+4. **Conferência e envio:** revisar os dados, registrar os responsáveis e encaminhar a solicitação à confecção. A prescrição e a coleta das medidas podem ocorrer por profissionais diferentes e em momentos distintos; será necessário salvar e retomar o processo quando houver persistência segura.
+5. **Fornecedor e rastreamento:** confirmar o recebimento, registrar produção, postagem e acompanhamento da entrega ao HU, com acesso limitado aos dados necessários à confecção.
+6. **Recebimento e prova no CTQ:** conferir a malha, registrar a prova e, caso esteja adequada, entregar ao paciente com recibo e registro do encaminhamento administrativo.
+7. **Ajustes:** quando necessário, registrar correções, novas medidas e logística reversa, mantendo o **mesmo pedido original**; após o retorno, realizar nova conferência e prova.
 
-**Atenção:** uma **segunda malha** é uma nova solicitação prescrita; **ajuste** é retrabalho vinculado à solicitação original. O BurnCare deve **registrar o encaminhamento administrativo**, sem executar pagamentos, lançamentos ESTHOS ou emissão de OPM.
+**Atenção:** uma **segunda malha** é uma nova solicitação prescrita; um **ajuste** é um retrabalho vinculado à solicitação original. O BurnCare deverá **registrar o encaminhamento administrativo**, sem executar pagamentos, lançamentos ESTHOS ou emissão de OPM.
 
 ## Tecnologia atual e limites
 
@@ -24,9 +24,9 @@ A unidade central do sistema é o **pedido de malha**, acompanhado do início ao
 - **Linguagem:** JavaScript com JSX (`View`, `Text`, `TextInput`, `Pressable` etc.).
 - **Estilização:** `StyleSheet.create()`.
 - **Ambiente:** navegador no computador, com possibilidade de instalação como PWA **a implementar e validar**.
-- **Persistência, autenticação e API:** **não implementadas na reconstrução atual**. A arquitetura segura para dados clínicos deverá ser definida com a equipe e aprovada pelo HU/TI, seguindo a LGPD. Não conectar banco clínico diretamente ao frontend.
+- **Persistência, autenticação e API:** **ainda não implementadas**. A arquitetura segura para dados clínicos deverá ser definida com a equipe e aprovada pelo HU/TI, observando a LGPD. Não conectar banco de dados clínicos diretamente ao frontend.
 
-Não utilizar Express/EJS na nova interface. O histórico dessas tecnologias permanece recuperável nos commits antigos do GitHub.
+A interface atual **não utiliza Express/EJS**. As implementações anteriores permanecem no histórico do GitHub, mas não devem ser mescladas diretamente à nova base.
 
 ## Como executar localmente
 
@@ -38,60 +38,98 @@ npm install
 npm run web
 ```
 
-Abra o endereço local informado pelo Expo no terminal (a porta pode variar). Para encerrar, use `Ctrl + C`.
+Abra o endereço local informado pelo Expo no terminal (a porta pode variar). Para encerrar, utilize `Ctrl + C`.
 
-O comando `npm run web` inicia **somente a interface**, não um serviço clínico completo. Os demais comandos Expo (`npm start`, `npm run android` e `npm run ios`) dependem do ambiente/dispositivo e da configuração existente.
+O comando `npm run web` inicia **somente a interface**, não um serviço clínico completo. Outros comandos Expo (`npm start`, `npm run android` e `npm run ios`) dependem do ambiente e da configuração disponível.
 
 ## Organização do código
 
+Estrutura inicial versionada na `main`:
+
 ```text
 BurnCare.CTQ-HU/
-├── App.js                 # Entrada da interface; carrega as páginas
+├── App.js                 # Entrada da interface; carrega a Home
 ├── index.js               # Registro do aplicativo no Expo
 ├── app.json               # Configuração Expo
 ├── src/
-│   ├── pages/
-│   │   └── Home.js        # Visão geral — base em desenvolvimento
-│   └── services/           # Integrações futuras; não pressupõe API pronta
+│   └── pages/
+│       ├── Home.js        # Visão geral — interface inicial
+│       └── NovoPedido.js  # Arquivo reservado; ainda sem implementação
 ├── package.json
 ├── package-lock.json
 ├── .gitignore
 └── README.md
 ```
 
-Novas páginas e componentes devem ser criados apenas conforme o trabalho exigir. `node_modules/` e `.expo/` são arquivos gerados localmente; não devem ser versionados.
+A pasta `src/services/` poderá abrigar integrações futuras, mas **não existe como pasta versionada enquanto estiver vazia**. Outras páginas, componentes e serviços devem ser criados conforme a necessidade e mediante alinhamento com a equipe. `node_modules/` e `.expo/` são arquivos gerados localmente e não devem ser versionados.
 
 ## Divisão inicial de trabalho — seis frentes
 
-| Frente | Responsável | Primeira entrega a desenvolver |
+| Frente | Responsável | Escopo e primeira entrega |
 |---|---|---|
-| 1. Base compartilhada, navegação e integração | **Lucca Felipe** | Publicar a base Expo com Home funcional, README atualizado e padrão de PRs; definir integração dos módulos |
-| 2. Identificação e cadastro de pacientes | **Abel Piassa** | Componente de busca, estado “não localizado” e formulário de cadastro, integrados ao fluxo Novo pedido; sem simular registros persistidos |
-| 3. Novo pedido e prescrição | **A definir** | Estrutura das etapas, primeira/segunda malha, campos e avanço/retorno; regras ainda a confirmar com CTQ |
-| 4. Boneco anatômico e catálogo | **A definir** | Frente/costas, seleção de região e associação às malhas; aproveitar a referência visual do HTML v2 |
-| 5. Medidas e anexos | **A definir** | Formulários dinâmicos para os sete gabaritos e elementos de anexo, aguardando validações clínicas |
-| 6. Acompanhamento, fornecedor, prova e ajuste | **A definir** | Fluxo de status e detalhes do pedido, recebimento, prova, ajuste e registro administrativo |
+| 1. Base compartilhada, navegação e integração | **Lucca Felipe** | **Base Expo e README publicados.** Evoluir a Home, implementar a navegação principal, padronizar os PRs e integrar os módulos da equipe. |
+| 2. Identificação e cadastro de pacientes | **Abel Piassa** | Desenvolver busca, estados de consulta, formulário e validações, como primeira etapa do **Novo pedido**; sem simular registros persistidos. |
+| 3. Novo pedido e prescrição | **A definir** | Estruturar as etapas, prescrição de primeira/segunda malha, campos, validações e avanço/retorno; confirmar regras com o CTQ. |
+| 4. Boneco anatômico e catálogo | **A definir** | Implementar frente/costas, seleção da região anatômica e associação às malhas, usando o HTML v2 como referência visual e catálogo validado. |
+| 5. Medidas e anexos | **A definir** | Criar formulários dinâmicos para os sete gabaritos e estrutura de anexos, sujeitos à validação clínica e à política de dados do HU. |
+| 6. Acompanhamento, fornecedor, prova e ajuste | **A definir** | Desenvolver visualização de status e detalhes do pedido, fluxo do fornecedor, recebimento, prova, ajuste e registro administrativo. |
 
-**Não significa que essas frentes já estejam implementadas.** Os responsáveis das quatro frentes restantes precisam ser confirmados pela equipe. Autenticação, banco de dados, segurança e testes transversais exigirão planejamento compartilhado.
+**Essas frentes representam responsabilidades, não funcionalidades prontas.** Os responsáveis das frentes 3 a 6 precisam ser definidos pela equipe. Autenticação, banco de dados, segurança, testes e integração exigirão planejamento e trabalho compartilhados.
 
 ## Como colaborar sem conflitos
 
-1. **Lucca publica e integra primeiro a reconstrução Expo à `main`**, por Pull Request após testes. Até isso acontecer, os demais integrantes não devem começar a desenvolver em cima da antiga `main` Express/EJS.
-2. Depois do merge, cada integrante atualiza o repositório e cria sua própria branch:
+O desenvolvimento do BurnCare utiliza React Native + Expo, com a branch `main` como base oficial do projeto. Cada integrante deve atualizar sua cópia local antes de iniciar uma nova funcionalidade, utilizando uma branch própria e respeitando a arquitetura estabelecida pela equipe.
 
-   ```bash
-   git switch main
-   git pull origin main
-   git switch -c feat/nome-do-modulo
-   ```
+### 1. Prepare sua branch
 
-3. Desenvolva em sua branch; teste e envie apenas os arquivos necessários. **Não envie** `.env`, credenciais, fotos ou dados reais de pacientes, `node_modules/` e `.expo/`.
-4. Publique a branch e abra um Pull Request direcionado à `main`, com o que foi feito, como testar e o que continua pendente.
-5. Não faça merge de branches antigas com Express/EJS diretamente na reconstrução. O trabalho anterior do módulo Pacientes do Abel deve ser consultado como referência e adaptado à nova base.
+Antes de começar, confira se não há alterações locais pendentes:
+
+```bash
+git status --short
+```
+
+Depois, atualize a `main` e crie sua branch:
+
+```bash
+git switch main
+git pull origin main
+git switch -c feat/nome-do-modulo
+```
+
+### 2. Desenvolva e teste
+
+Desenvolva na sua própria branch, respeitando os arquivos e componentes combinados com a equipe.
+
+Execute `npm run web` para testar.
+
+**Não envie** arquivos `.env`, credenciais, fotos ou dados reais de pacientes, `node_modules/` ou `.expo/`.
+
+### 3. Abra um Pull Request
+
+Publique sua branch e abra um Pull Request para a `main`, informando:
+
+- O que foi desenvolvido.
+- Como testar a funcionalidade.
+- O que ainda está pendente.
+
+Cada integrante deve executar seus próprios comandos Git e revisar as alterações antes do merge.
+
+### 4. Evite conflitos com versões antigas
+
+Não faça merge de branches antigas em Express/EJS diretamente na reconstrução Expo.
+
+O trabalho anterior do módulo de pacientes do Abel pode servir como referência, mas deverá ser reimplementado em React Native/JSX.
+
+### 5. Combine a integração dos módulos
+
+O fluxo de **Novo Pedido** coordena as etapas.
+
+Identificação do paciente, seleção anatômica e medidas serão componentes integrados nesse mesmo fluxo. A equipe deve combinar previamente como esses componentes trocarão informações.
+
 
 ## Critério mínimo de conclusão de uma tarefa
 
-Uma funcionalidade só deve ser marcada como pronta quando seu fluxo estiver implementado, testado e revisado. Não usar valores ou pacientes inventados para aparentar que há registros no sistema. Enquanto não houver backend, distinguir **tela construída** de **funcionalidade com gravação/consulta real**.
+Uma funcionalidade só deve ser marcada como pronta quando estiver implementada, testada e revisada. Não utilizar valores ou pacientes inventados para aparentar registros reais. Enquanto não houver backend, diferenciar claramente **interface construída** de **funcionalidade com consulta ou gravação real**.
 
 ## Referências e decisões clínicas
 
@@ -106,5 +144,3 @@ Não armazenar fotos clínicas, prontuários ou dados de saúde em repositório 
 
 - [Repositório GitHub](https://github.com/LuccaFelipeR/BurnCare.CTQ-HU)
 - [Trello da equipe EQ-10](https://trello.com/b/tF8cHTDq/burncare-eq-10-desenvolvimento)
-
-> **Nota de transição:** este README foi preparado para substituir a documentação antiga Express/EJS **na branch de reconstrução Expo**. Enquanto o PR não for integrado, o `README.md` da `main` remota ainda descreve a arquitetura anterior.
