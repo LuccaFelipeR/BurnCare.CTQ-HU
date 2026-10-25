@@ -15,6 +15,7 @@ export default function Sidebar(){
                 <Text style={estilos.textoMenu}>Visão geral</Text>
                 <Text style={estilos.textoMenu}>Novo Pedido</Text>
                 <Text style={estilos.textoMenu}>Histórico de pedidos</Text>
+                <Text style={estilos.textoMenu}>Gestão e documentos</Text>
                 
             </View>
         </View>
