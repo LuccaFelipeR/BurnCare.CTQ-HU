@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Dropdown } from "react-native-element-dropdown";
 import {
   View,
   Text,
@@ -11,7 +12,7 @@ import {
   Alert,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { CORES } from "../theme/colors";
+import { CORES } from "./theme/cores";
 
 const MEDIDAS = [
     "Circunferência da Palma",
@@ -29,6 +30,14 @@ const MEDIDAS = [
     "Altura do anelar",
     "Altura do dedo mínimo",
     "Comprimento total da luva"
+];
+
+const OPCOES = [
+    { label: 'Escolher (se aplicável)', value: '1' },
+    { label: 'Fechada', value: '2' },
+    { label: 'Dedo longo sem costura', value: '3' },
+    { label: 'Com dedos abertos', value: '4' },
+    { label: 'Sem dedos', value: '5' },
 ];
 
 function nomeMedida(index, nome){
@@ -94,45 +103,11 @@ export default function MedidasAnexos({navigation, OnVoltar, OnContinuar}){
       quantidadeFotos: fotos.length,
     });
   }
+
+  const [value, setValue] = useState(null);
+
   return(
      <View style={styles.app}>
-      {/* MENU LATERAL */}
-      <View
-        style={[
-          styles.sidebar,
-          compacto && styles.sidebarCompacto,
-          celular && styles.sidebarCelular,
-        ]}
-      >
-        <View style={styles.logoLinha}>
-          <View style={styles.logoIcone}>
-            <Text style={styles.logoMais}>✚</Text>
-          </View>
-          <Text style={styles.logoTexto}>BurnCare</Text>
-        </View>
-
-        <Text style={styles.versao}>CTQ · PROTÓTIPO V2</Text>
-
-        <View style={[styles.menu, celular && styles.menuCelular]}>
-          <Text style={styles.menuItem}>▦ Visão geral</Text>
-          <View style={styles.menuAtivo}>
-            <Text style={styles.menuAtivoTexto}>＋ Novo pedido</Text>
-          </View>
-          <Text style={styles.menuItem}>▤ Histórico de pedidos</Text>
-          <Text style={styles.menuItem}>◫ Gestão e documentos</Text>
-        </View>
-
-        {!celular && (
-          <View style={styles.perfil}>
-            <Text style={styles.perfilTitulo}>Equipe HU / CTQ</Text>
-            <Text style={styles.perfilSubtitulo}>
-              Ambiente demonstrativo
-            </Text>
-            <Text style={styles.sair}>Sair / mudar perfil</Text>
-          </View>
-        )}
-      </View>
-
       {/* ÁREA PRINCIPAL */}
       <View style={styles.principal}>
         <View style={styles.topbar}>
@@ -140,12 +115,6 @@ export default function MedidasAnexos({navigation, OnVoltar, OnContinuar}){
             <Text style={styles.topTitulo}>Nova solicitação</Text>
             <Text style={styles.topSubtitulo}>
               Hospital Universitário de Londrina · CTQ
-            </Text>
-          </View>
-
-          <View style={styles.selo}>
-            <Text style={styles.seloTexto}>
-              SIMULAÇÃO - SEM DADOS REAIS
             </Text>
           </View>
         </View>
@@ -172,7 +141,7 @@ export default function MedidasAnexos({navigation, OnVoltar, OnContinuar}){
               compacto && styles.workspaceCompacto,
             ]}
           >
-            {/* ETAPAS */}
+
             <View
               style={[
                 styles.etapas,
@@ -180,10 +149,7 @@ export default function MedidasAnexos({navigation, OnVoltar, OnContinuar}){
               ]}
             >
               {[
-                "Paciente e prescrição",
-                "Região e produto",
-                "Medidas e anexos",
-                "Conferência",
+                //
               ].map((nome, index) => {
                 const concluida = index < 2;
                 const atual = index === 2;
@@ -258,39 +224,20 @@ export default function MedidasAnexos({navigation, OnVoltar, OnContinuar}){
                 </Text>
               </View>
 
-              <Text style={styles.label}>
+                <Text style={styles.label}>
                 Modelo / acabamento (conforme gabarito)
-              </Text>
+                </Text>
 
-              <View style={styles.modelos}>
-                {[
-                  { valor: "", texto: "Escolher (se aplicável)" },
-                  { valor: "Padrao", texto: "Padrão" },
-                  { valor: "Personalizado", texto: "Personalizado" },
-                ].map((opcao) => (
-                  <Pressable
-                    key={opcao.valor || "vazio"}
-                    onPress={() => setModelo(opcao.valor)}
-                    style={[
-                      styles.opcaoModelo,
-                      modelo === opcao.valor &&
-                        styles.opcaoModeloAtiva,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.opcaoTexto,
-                        modelo === opcao.valor &&
-                          styles.opcaoTextoAtivo,
-                      ]}
-                    >
-                      {opcao.texto}
-                      {modelo === opcao.valor ? "  ✓" : ""}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
-
+                <Dropdown
+                style={styles.dropdown}
+                selectedTextStyle={styles.textoSelecionado}
+                data={OPCOES}
+                labelField="label"
+                valueField="value"
+                placeholder="Selecione o modelo / acabamento"
+                value={value}
+                onChange={(item) => setValue(item.value)}
+                />
               {/* CAMPOS DE MEDIDAS */}
               <View style={styles.listaMedidas}>
                 {MEDIDAS.map((nome, index) => (
@@ -349,15 +296,11 @@ export default function MedidasAnexos({navigation, OnVoltar, OnContinuar}){
                   <Text style={styles.termoTitulo}>
                     Termo de autorização de imagem conferido
                   </Text>
-                  <Text style={styles.termoSubtitulo}>
-                    Anexo 2 listado no fluxograma. O arquivo original
-                    não foi fornecido nesta conversa.
-                  </Text>
                 </View>
               </Pressable>
 
               <Text style={styles.label}>
-                Fotos da cicatriz (simulação)
+                Fotos da cicatriz
               </Text>
 
               <Pressable
@@ -373,12 +316,6 @@ export default function MedidasAnexos({navigation, OnVoltar, OnContinuar}){
                     : `${fotos.length} imagem(ns) selecionada(s)`}
                 </Text>
               </Pressable>
-
-              <Text style={styles.ajuda}>
-                Use apenas imagens fictícias. O protótipo não salva
-                nem envia arquivos; registra apenas a quantidade
-                selecionada.
-              </Text>
 
               {erro !== "" && (
                 <Text style={styles.erro}>{erro}</Text>
@@ -423,94 +360,6 @@ const styles = StyleSheet.create({
     backgroundColor: CORES.fundo,
     fontFamily: "Arial, sans-serif",
   },
-  sidebar: {
-    width: 224,
-    flexShrink: 0,
-    minHeight: "100vh",
-    backgroundColor: "#19384C",
-    padding: 20,
-  },
-  sidebarCompacto: {
-    width: 190,
-    padding: 12,
-  },
-  sidebarCelular: {
-    width: 115,
-    minHeight: "100vh",
-    padding: 8,
-  },
-  logoLinha: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 9,
-  },
-  logoIcone: {
-    width: 38,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: "#22B3A5",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  logoMais: {
-    color: "#FFFFFF",
-    fontSize: 24,
-    fontWeight: "bold",
-  },
-  logoTexto: {
-    color: "#FFFFFF",
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-  versao: {
-    color: "#FFFFFF",
-    fontSize: 11,
-    marginTop: 8,
-    marginBottom: 38,
-  },
-  menu: {
-    gap: 7,
-  },
-  menuCelular: {
-    gap: 10,
-  },
-  menuItem: {
-    color: "#F2F7FA",
-    fontSize: 12,
-    fontWeight: "600",
-    paddingVertical: 13,
-  },
-  menuAtivo: {
-    padding: 13,
-    borderRadius: 10,
-    backgroundColor: "#365368",
-  },
-  menuAtivoTexto: {
-    color: "#FFFFFF",
-    fontSize: 12,
-    fontWeight: "bold",
-  },
-  perfil: {
-    marginTop: "auto",
-    paddingTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: "#496174",
-  },
-  perfilTitulo: {
-    color: "#FFFFFF",
-    fontWeight: "bold",
-    fontSize: 12,
-  },
-  perfilSubtitulo: {
-    color: "#C7D9E5",
-    fontSize: 11,
-    marginTop: 6,
-  },
-  sair: {
-    color: "#FFFFFF",
-    fontSize: 11,
-    marginTop: 16,
-  },
   principal: {
     flex: 1,
     minWidth: 0,
@@ -536,17 +385,6 @@ const styles = StyleSheet.create({
     color: "#61798A",
     fontSize: 12,
     marginTop: 5,
-  },
-  selo: {
-    backgroundColor: "#FFF0DB",
-    paddingHorizontal: 11,
-    paddingVertical: 7,
-    borderRadius: 20,
-  },
-  seloTexto: {
-    color: "#99520B",
-    fontSize: 10,
-    fontWeight: "bold",
   },
   scrollPrincipal: {
     flex: 1,
@@ -831,11 +669,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "bold",
   },
-  termoSubtitulo: {
-    color: "#657E91",
-    fontSize: 11,
-    lineHeight: 17,
-  },
   upload: {
     minHeight: 44,
     flexDirection: "row",
@@ -851,16 +684,13 @@ const styles = StyleSheet.create({
     color: "#173650",
     fontSize: 12,
     fontWeight: "bold",
+     borderColor: "#D8E5EC",
+    borderWidth: 1.5,
+    borderRadius: 5,
   },
   uploadTexto: {
     color: "#61798A",
     fontSize: 12,
-  },
-  ajuda: {
-    color: "#657E91",
-    fontSize: 11,
-    lineHeight: 17,
-    marginTop: 8,
   },
   erro: {
     color: "#A32626",
@@ -906,5 +736,17 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "bold",
   },
+  dropdown: {
+    height: 40,
+    borderColor: "#D8E5EC",
+    borderWidth: 1.5,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+  },
+  textoSelecionado: {
+    fontSize: 12
+  },
+  label: {
+    fontSize: 12, fontWeight: 'bold', marginBottom: 8
+  }
 });
-
