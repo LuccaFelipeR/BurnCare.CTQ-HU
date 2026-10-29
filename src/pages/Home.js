@@ -2,6 +2,14 @@
 import { View, Text, Pressable, ScrollView, StyleSheet } from "react-native";
 
 export default function Home({ navigation }) {
+  // Indicadores sem dados reais por enquanto
+  const indicadores = [
+    { titulo: "Pedidos em aberto", valor: "—" },
+    { titulo: "Em produção", valor: "—" },
+    { titulo: "Aguardando prova", valor: "—" },
+    { titulo: "Concluídos", valor: "—" }
+  ];
+
   return (
     <ScrollView
       style={estilos.container}
@@ -19,36 +27,64 @@ export default function Home({ navigation }) {
         </Text>
 
         <Text style={estilos.descricao}>
-          Sistema de acompanhamento de solicitações
-          de malhas compressivas.
+          Acompanhe as solicitações de malhas compressivas
+          em um só lugar.
+        </Text>
+      </View>
+
+      <Text style={estilos.secao}>Resumo dos pedidos</Text>
+
+      <View style={estilos.indicadores}>
+        {indicadores.map((indicador) => (
+          <View
+            key={indicador.titulo}
+            style={estilos.indicador}
+          >
+            <Text style={estilos.valor}>
+              {indicador.valor}
+            </Text>
+
+            <Text style={estilos.indicadorTitulo}>
+              {indicador.titulo}
+            </Text>
+          </View>
+        ))}
+      </View>
+
+      <Text style={estilos.secao}>Pedidos recentes</Text>
+
+      <View style={estilos.cartao}>
+        <Text style={estilos.cartaoTitulo}>
+          Nenhum pedido disponível
+        </Text>
+
+        <Text style={estilos.descricao}>
+          Os pedidos recentes serão exibidos aqui
+          quando o sistema estiver integrado.
         </Text>
       </View>
 
       <Text style={estilos.secao}>Acesso rápido</Text>
 
-      <Pressable
-        style={estilos.cartao}
-        onPress={() => navigation.navigate("NovoPedido")}
-      >
-        <Text style={estilos.cartaoTitulo}>
-          + Novo pedido
-        </Text>
-        <Text style={estilos.descricao}>
-          Iniciar uma nova solicitação de malha.
-        </Text>
-      </Pressable>
+      <View style={estilos.acessos}>
+        <Pressable
+          style={estilos.botaoPrincipal}
+          onPress={() => navigation.navigate("NovoPedido")}
+        >
+          <Text style={estilos.textoBotaoPrincipal}>
+            + Novo pedido
+          </Text>
+        </Pressable>
 
-      <Pressable
-        style={estilos.cartao}
-        onPress={() => navigation.navigate("Historico")}
-      >
-        <Text style={estilos.cartaoTitulo}>
-          Histórico de pedidos
-        </Text>
-        <Text style={estilos.descricao}>
-          Acompanhar solicitações e seus status.
-        </Text>
-      </Pressable>
+        <Pressable
+          style={estilos.botaoSecundario}
+          onPress={() => navigation.navigate("Historico")}
+        >
+          <Text style={estilos.textoBotaoSecundario}>
+            Ver histórico
+          </Text>
+        </Pressable>
+      </View>
 
       <Text style={estilos.aviso}>
         Ambiente demonstrativo — sem dados reais de pacientes.
@@ -75,15 +111,15 @@ const estilos = StyleSheet.create({
   },
 
   subtitulo: {
-    color: "#718696",
-    fontSize: 13
+    fontSize: 13,
+    color: "#718696"
   },
 
   destaque: {
     backgroundColor: "#DDF3E9",
     padding: 25,
     borderRadius: 12,
-    marginTop: 15
+    marginTop: 10
   },
 
   destaqueTitulo: {
@@ -93,8 +129,8 @@ const estilos = StyleSheet.create({
   },
 
   descricao: {
-    color: "#657888",
     fontSize: 14,
+    color: "#657888",
     marginTop: 8,
     lineHeight: 21
   },
@@ -106,18 +142,80 @@ const estilos = StyleSheet.create({
     marginTop: 12
   },
 
+  indicadores: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12
+  },
+
+  indicador: {
+    flexGrow: 1,
+    flexBasis: 170,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#DDE8EE",
+    borderRadius: 12,
+    padding: 20
+  },
+
+  valor: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#0C716B"
+  },
+
+  indicadorTitulo: {
+    fontSize: 13,
+    color: "#657888",
+    marginTop: 8
+  },
+
   cartao: {
     backgroundColor: "#FFFFFF",
-    padding: 22,
-    borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#DDE8EE"
+    borderColor: "#DDE8EE",
+    borderRadius: 12,
+    padding: 22
   },
 
   cartaoTitulo: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: "bold",
-    color: "#0C716B"
+    color: "#19384C"
+  },
+
+  acessos: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12
+  },
+
+  botaoPrincipal: {
+    backgroundColor: "#0C716B",
+    padding: 16,
+    borderRadius: 8,
+    alignItems: "center",
+    minWidth: 150
+  },
+
+  textoBotaoPrincipal: {
+    color: "#FFFFFF",
+    fontWeight: "bold"
+  },
+
+  botaoSecundario: {
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#0C716B",
+    padding: 16,
+    borderRadius: 8,
+    alignItems: "center",
+    minWidth: 150
+  },
+
+  textoBotaoSecundario: {
+    color: "#0C716B",
+    fontWeight: "bold"
   },
 
   aviso: {
