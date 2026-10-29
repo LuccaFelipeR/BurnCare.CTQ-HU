@@ -1,146 +1,286 @@
+
 # BurnCare — CTQ HU | EQ-10
 
-Sistema em desenvolvimento para organizar e acompanhar as solicitações de malhas compressivas do Centro de Tratamento de Queimados (CTQ) do Hospital Universitário de Londrina (HU).
+Sistema acadêmico em desenvolvimento para organizar e acompanhar as solicitações de malhas compressivas do Centro de Tratamento de Queimados (CTQ) do Hospital Universitário de Londrina (HU).
 
-> **Estado atual do projeto:** a interface inicial utiliza Expo SDK 57 e React Native Web. A `Home.js` contém a estrutura inicial da aplicação, enquanto `NovoPedido.js` ainda não possui implementação. O protótipo validado pelo CTQ orienta o desenvolvimento, mas **o sistema clínico ainda não está pronto**. Não existem cadastro persistente de pacientes, pedidos reais, autenticação, backend clínico ou banco de dados integrado. Não utilizar dados reais de pacientes nesta fase.
+> **Status:** Protótipo funcional da interface, em desenvolvimento.
+>
+> A navegação principal, a Home responsiva e os componentes iniciais estão implementados. O sistema ainda não possui backend clínico, autenticação, banco de dados integrado ou cadastro persistente de pacientes.
+>
+> **Importante:** Utilizar somente dados fictícios durante o desenvolvimento. O projeto ainda não está autorizado para uso com informações reais de pacientes.
+## 1. Objetivo
 
-## Objetivo e fluxo do BurnCare
+O BurnCare tem como objetivo centralizar o acompanhamento dos pedidos de malhas compressivas, desde a identificação do paciente até a entrega da malha.
 
-A unidade central do sistema é o **pedido de malha**, acompanhado do início ao encerramento. A navegação principal prevista para a equipe CTQ é **Visão geral**, **Novo pedido** e **Histórico de pedidos**. Pacientes, corpo, produtos e medidas são etapas e componentes desse fluxo, não menus independentes.
+O fluxo previsto contempla:
 
-1. **Novo pedido — identificação:** localizar o paciente no cadastro autorizado; se não existir, cadastrar e continuar. Sem integração real de dados, a interface deve distinguir **“paciente não localizado”** de **“consulta indisponível”**.
-2. **Prescrição e seleção:** identificar se é primeira ou segunda malha, selecionar as regiões no corpo anatômico e escolher as malhas correspondentes, conforme catálogo validado pelo CTQ.
-3. **Medidas e anexos:** preencher o gabarito relativo a cada produto. Existem sete modelos documentados; campos obrigatórios e regras para fotografias dependem de confirmação do CTQ/HU.
-4. **Conferência e envio:** revisar os dados, registrar os responsáveis e encaminhar a solicitação à confecção. A prescrição e a coleta das medidas podem ocorrer por profissionais diferentes e em momentos distintos; será necessário salvar e retomar o processo quando houver persistência segura.
-5. **Fornecedor e rastreamento:** confirmar o recebimento, registrar produção, postagem e acompanhamento da entrega ao HU, com acesso limitado aos dados necessários à confecção.
-6. **Recebimento e prova no CTQ:** conferir a malha, registrar a prova e, caso esteja adequada, entregar ao paciente com recibo e registro do encaminhamento administrativo.
-7. **Ajustes:** quando necessário, registrar correções, novas medidas e logística reversa, mantendo o **mesmo pedido original**; após o retorno, realizar nova conferência e prova.
+1. Identificação e cadastro do paciente.
+2. Prescrição da primeira ou segunda malha.
+3. Seleção da região anatômica e do produto.
+4. Registro de medidas e anexos.
+5. Conferência e encaminhamento à confecção.
+6. Acompanhamento da produção e do transporte.
+7. Recebimento e prova da malha no CTQ.
+8. Registro de ajustes, quando necessários.
+9. Entrega ao paciente e encerramento do pedido.
 
-**Atenção:** uma **segunda malha** é uma nova solicitação prescrita; um **ajuste** é um retrabalho vinculado à solicitação original. O BurnCare deverá **registrar o encaminhamento administrativo**, sem executar pagamentos, lançamentos ESTHOS ou emissão de OPM.
+Uma segunda malha representa uma nova solicitação prescrita. Um ajuste é um retrabalho vinculado ao pedido original.
 
-## Tecnologia atual e limites
+As regras clínicas, os campos obrigatórios e os procedimentos administrativos ainda dependem de validação com o CTQ/HU.
 
-- **Interface:** React Native + Expo SDK 57 + React Native Web.
-- **Linguagem:** JavaScript com JSX (`View`, `Text`, `TextInput`, `Pressable` etc.).
-- **Estilização:** `StyleSheet.create()`.
-- **Ambiente:** navegador no computador, com possibilidade de instalação como PWA **a implementar e validar**.
-- **Persistência, autenticação e API:** **ainda não implementadas**. A arquitetura segura para dados clínicos deverá ser definida com a equipe e aprovada pelo HU/TI, observando a LGPD. Não conectar banco de dados clínicos diretamente ao frontend.
+## 2. Tecnologias
 
-A interface atual **não utiliza Express/EJS**. As implementações anteriores permanecem no histórico do GitHub, mas não devem ser mescladas diretamente à nova base.
+| Tecnologia | Utilização |
+|---|---|
+| React Native | Construção da interface |
+| Expo SDK 57 | Ambiente de desenvolvimento |
+| React Native Web | Execução no navegador |
+| JavaScript e JSX | Desenvolvimento dos componentes |
+| React Navigation | Navegação entre as telas |
+| StyleSheet | Estilização e responsividade |
+| Git e GitHub | Versionamento e colaboração |
 
-## Como executar localmente
+A interface atual não utiliza Express/EJS.
 
-Pré-requisitos: Git, Node.js e npm instalados.
+Branches antigas desenvolvidas nessa arquitetura permanecem como referência histórica, mas não devem ser integradas diretamente ao aplicativo React Native.
 
-```bash
-# Após clonar e entrar no repositório:
-npm install
-npm run web
-```
+## 3. Funcionalidades implementadas
 
-Abra o endereço local informado pelo Expo no terminal (a porta pode variar). Para encerrar, utilize `Ctrl + C`.
+### 3.1. Navegação principal
 
-O comando `npm run web` inicia **somente a interface**, não um serviço clínico completo. Outros comandos Expo (`npm start`, `npm run android` e `npm run ios`) dependem do ambiente e da configuração disponível.
+A aplicação possui três rotas:
 
-## Organização do código
+- **Visão Geral**
+- **Novo Pedido**
+- **Histórico de Pedidos**
 
-Estrutura inicial versionada na `main`:
+A navegação é centralizada em `RootNavigator.js`, utilizando React Navigation.
+
+O componente `SideBar.js` apresenta o menu principal e destaca a tela selecionada.
+
+### 3.2. Home — Visão Geral
+
+A Home contém:
+
+- Identificação do CTQ/HU.
+- Mensagem de boas-vindas.
+- Quatro indicadores de acompanhamento.
+- Área reservada para pedidos recentes.
+- Atalho para Novo Pedido.
+- Atalho para Histórico de Pedidos.
+
+Os indicadores disponíveis são:
+
+| Indicador | Valor inicial |
+|---|---|
+| Pedidos em aberto | 0 |
+| Em produção | 0 |
+| Aguardando prova | 0 |
+| Concluídos | 0 |
+
+**Esses valores são estáticos no protótipo.** Não representam consultas a pedidos reais e serão substituídos por dados calculados quando existir uma fonte de dados autorizada.
+
+### 3.3. Componente CardIndicador
+
+O componente `CardIndicador.js` recebe as propriedades `titulo` e `valor`.
+
+Ele permite reutilizar o mesmo modelo visual para diferentes indicadores, evitando repetição de código na Home.
+
+### 3.4. Responsividade
+
+O layout principal utiliza `useWindowDimensions` e Flexbox para adaptar a interface a diferentes larguras de tela.
+
+- No computador, a navegação aparece na lateral.
+- Em telas menores, o menu passa para a parte superior.
+- Os indicadores se reorganizam conforme o espaço disponível.
+- A rolagem vertical permite acessar conteúdos mais longos.
+
+A responsividade da Home e da navegação principal foi testada durante o desenvolvimento. As telas dos módulos da equipe ainda precisarão de testes próprios.
+
+### 3.5. Novo Pedido
+
+Existe uma estrutura inicial com quatro etapas:
+
+1. Paciente e prescrição.
+2. Região e produto.
+3. Medidas e anexos.
+4. Conferência.
+
+Os formulários e as integrações entre essas etapas ainda estão em desenvolvimento.
+
+### 3.6. Histórico de Pedidos
+
+Existe uma tela inicial acessível pela navegação principal.
+
+A implementação dos pedidos, filtros, status e acompanhamento será integrada posteriormente.
+
+## 4. Estrutura do projeto
 
 ```text
 BurnCare.CTQ-HU/
-├── App.js                 # Entrada da interface; carrega a Home
-├── index.js               # Registro do aplicativo no Expo
-├── app.json               # Configuração Expo
+├── App.js
+├── index.js
+├── app.json
 ├── src/
-│   └── pages/
-│       ├── Home.js        # Visão geral — interface inicial
-│       └── NovoPedido.js  # Arquivo reservado; ainda sem implementação
+│   ├── components/
+│   │   ├── CardIndicador.js
+│   │   └── SideBar.js
+│   ├── pages/
+│   │   ├── Home.js
+│   │   ├── NovoPedido.js
+│   │   └── HistoricoPedidos.js
+│   └── routes/
+│       └── RootNavigator.js
 ├── package.json
 ├── package-lock.json
 ├── .gitignore
 └── README.md
 ```
 
-A pasta `src/services/` poderá abrigar integrações futuras, mas **não existe como pasta versionada enquanto estiver vazia**. Outras páginas, componentes e serviços devem ser criados conforme a necessidade e mediante alinhamento com a equipe. `node_modules/` e `.expo/` são arquivos gerados localmente e não devem ser versionados.
+**Responsabilidades dos arquivos principais:**
 
-## Divisão inicial de trabalho — seis frentes
+- `App.js`: inicializa o `NavigationContainer`.
+- `RootNavigator.js`: configura as rotas e o layout compartilhado.
+- `SideBar.js`: exibe o menu e permite navegar entre as telas.
+- `Home.js`: apresenta o dashboard inicial.
+- `CardIndicador.js`: renderiza os cartões dos indicadores.
+- `NovoPedido.js`: estrutura inicial do fluxo de solicitação.
+- `HistoricoPedidos.js`: tela inicial do acompanhamento.
 
-| Frente | Responsável | Escopo e primeira entrega |
-|---|---|---|
-| 1. Base compartilhada, navegação e integração | **Lucca Felipe** | **Base Expo e README publicados.** Evoluir a Home, implementar a navegação principal, padronizar os PRs e integrar os módulos da equipe. |
-| 2. Identificação e cadastro de pacientes | **Abel Piassa** | Desenvolver busca, estados de consulta, formulário e validações, como primeira etapa do **Novo pedido**; sem simular registros persistidos. |
-| 3. Novo pedido e prescrição | **Ana Júlia** | Estruturar as etapas, prescrição de primeira/segunda malha, campos, validações e avanço/retorno; confirmar regras com o CTQ. |
-| 4. Boneco anatômico e catálogo | **Ana Fernandes** | Implementar frente/costas, seleção da região anatômica e associação às malhas, usando o HTML v2 como referência visual e catálogo validado. |
-| 5. Medidas e anexos | **Ana Mantella** | Criar formulários dinâmicos para os sete gabaritos e estrutura de anexos, sujeitos à validação clínica e à política de dados do HU. |
-| 6. Acompanhamento, fornecedor, prova e ajuste | **Matheus Albertini** | Desenvolver visualização de status e detalhes do pedido, fluxo do fornecedor, recebimento, prova, ajuste e registro administrativo. |
+Os novos módulos serão adicionados conforme forem desenvolvidos e integrados.
 
-**Essas frentes representam responsabilidades, não funcionalidades prontas.** Os responsáveis das frentes 3 a 6 precisam ser definidos pela equipe. Autenticação, banco de dados, segurança, testes e integração exigirão planejamento e trabalho compartilhados.
+## 5. Como executar
 
-## Como colaborar sem conflitos
+### Pré-requisitos
 
-O desenvolvimento do BurnCare utiliza React Native + Expo, com a branch `main` como base oficial do projeto. Cada integrante deve atualizar sua cópia local antes de iniciar uma nova funcionalidade, utilizando uma branch própria e respeitando a arquitetura estabelecida pela equipe.
+- Node.js e npm.
+- Git.
+- VS Code ou outro editor compatível.
 
-### 1. Prepare sua branch
+### Instalação
 
-Antes de começar, confira se não há alterações locais pendentes:
+Clone o repositório e acesse a pasta do projeto:
 
 ```bash
-git status --short
+git clone https://github.com/LuccaFelipeR/BurnCare.CTQ-HU.git
+cd BurnCare.CTQ-HU
+npm install
 ```
 
-Depois, atualize a `main` e crie sua branch:
+### Execução no navegador
 
 ```bash
+npm run web
+```
+
+Abra o endereço local informado pelo Expo.
+
+Para interromper o servidor, pressione `Ctrl + C` no terminal.
+
+A execução local disponibiliza somente a interface do protótipo, não um sistema clínico operacional.
+
+## 6. Equipe e responsabilidades
+
+| Responsável | Módulo |
+|---|---|
+| Lucca Felipe | Estrutura Expo, Home, navegação, documentação e integração |
+| Abel Piassa | Identificação e cadastro de pacientes |
+| Ana Júlia | Novo Pedido e prescrição |
+| Ana Fernandes | Seleção anatômica e catálogo de produtos |
+| Ana Mantella | Medidas e anexos |
+| Matheus Albertini | Histórico, fornecedor, prova, ajustes e entrega |
+
+Cada integrante desenvolve seu módulo respeitando a estrutura principal do projeto.
+
+As entregas individuais somente serão consideradas integradas após revisão e testes na aplicação.
+
+## 7. Organização do desenvolvimento
+
+A branch `main` contém a base oficial do projeto.
+
+Os integrantes devem desenvolver suas funcionalidades em branches próprias e abrir Pull Requests para integração.
+
+Antes de iniciar uma funcionalidade:
+
+```bash
+git status -sb
 git switch main
 git pull origin main
 git switch -c feat/nome-do-modulo
 ```
 
-### 2. Desenvolva e teste
+Os comandos acima pressupõem que não existam alterações locais pendentes.
 
-Desenvolva na sua própria branch, respeitando os arquivos e componentes combinados com a equipe.
+### Padrões de desenvolvimento
 
-Execute `npm run web` para testar.
+- Utilizar React Native, JavaScript e JSX.
+- Priorizar componentes reutilizáveis.
+- Utilizar `StyleSheet.create` para estilos.
+- Manter a navegação principal centralizada.
+- Não criar menus laterais duplicados.
+- Evitar alterar arquivos de outros integrantes sem alinhamento.
+- Testar a interface no navegador e em diferentes tamanhos de tela.
+- Não instalar bibliotecas desnecessárias.
 
-**Não envie** arquivos `.env`, credenciais, fotos ou dados reais de pacientes, `node_modules/` ou `.expo/`.
+### Pull Requests
 
-### 3. Abra um Pull Request
+Cada Pull Request deve informar:
 
-Publique sua branch e abra um Pull Request para a `main`, informando:
+- Funcionalidade desenvolvida.
+- Arquivos modificados.
+- Como testar.
+- Funcionalidades pendentes.
+- Possíveis conflitos de integração.
 
-- O que foi desenvolvido.
-- Como testar a funcionalidade.
-- O que ainda está pendente.
+O merge deve ocorrer somente após revisão.
 
-Cada integrante deve executar seus próprios comandos Git e revisar as alterações antes do merge.
+## 8. Segurança e privacidade
 
-### 4. Evite conflitos com versões antigas
+O BurnCare envolve um contexto de dados clínicos sensíveis.
 
-Não faça merge de branches antigas em Express/EJS diretamente na reconstrução Expo.
+Durante a fase acadêmica:
 
-O trabalho anterior do módulo de pacientes do Abel pode servir como referência, mas deverá ser reimplementado em React Native/JSX.
+- Não utilizar dados reais de pacientes.
+- Não publicar prontuários, fotografias clínicas ou informações identificáveis.
+- Não armazenar credenciais no repositório.
+- Não implementar armazenamento clínico sem autorização institucional.
+- Não conectar diretamente o frontend a um banco de dados clínico sem arquitetura de segurança aprovada.
 
-### 5. Combine a integração dos módulos
+A autenticação, a persistência, o controle de acesso e a conformidade com a LGPD deverão ser definidos e validados com o HU/TI antes de qualquer utilização operacional.
 
-O fluxo de **Novo Pedido** coordena as etapas.
+## 9. Próximas etapas
 
-Identificação do paciente, seleção anatômica e medidas serão componentes integrados nesse mesmo fluxo. A equipe deve combinar previamente como esses componentes trocarão informações.
+- [x] Criar a estrutura inicial Expo + React Native.
+- [x] Implementar a navegação principal.
+- [x] Criar a Sidebar.
+- [x] Criar a Home com indicadores.
+- [x] Implementar o CardIndicador reutilizável.
+- [x] Ajustar a responsividade da Home e da navegação.
+- [x] Criar a estrutura inicial de Novo Pedido.
+- [x] Criar a tela inicial de Histórico.
+- [ ] Integrar identificação e cadastro de pacientes.
+- [ ] Implementar o fluxo completo de Novo Pedido.
+- [ ] Integrar seleção anatômica e catálogo.
+- [ ] Integrar medidas e anexos.
+- [ ] Implementar acompanhamento e histórico funcional.
+- [ ] Definir contratos de dados entre os módulos.
+- [ ] Validar regras clínicas com o CTQ/HU.
+- [ ] Definir backend, autenticação e persistência autorizados.
+- [ ] Realizar testes de integração e usabilidade.
 
+## 10. Referências
 
-## Critério mínimo de conclusão de uma tarefa
+O desenvolvimento considera o protótipo HTML v2, o material de validação, o fluxograma da rotina de solicitação de malhas e os modelos de documentos clínicos fornecidos para o projeto.
 
-Uma funcionalidade só deve ser marcada como pronta quando estiver implementada, testada e revisada. Não utilizar valores ou pacientes inventados para aparentar registros reais. Enquanto não houver backend, diferenciar claramente **interface construída** de **funcionalidade com consulta ou gravação real**.
+Esses materiais orientam o desenvolvimento, mas não substituem a validação institucional.
 
-## Referências e decisões clínicas
-
-- **Protótipo HTML v2 e PDF de validação:** referência visual e de navegação.
-- **Dossiê da primeira reunião:** requisitos levantados com o CTQ.
-- **Fluxograma da rotina de solicitação de malhas:** sequência operacional e documentação necessária.
-- **Dados do Paciente, MEDIDAS, checklist e recibo:** campos e modelos a confrontar com a validação clínica.
-
-Não armazenar fotos clínicas, prontuários ou dados de saúde em repositório público, em prompts de IA ou em dispositivos sem autorização e segurança institucional. Decisões ainda não validadas devem ser identificadas como **pendentes de validação CTQ/HU**.
-
-## Acompanhamento
+### Links
 
 - [Repositório GitHub](https://github.com/LuccaFelipeR/BurnCare.CTQ-HU)
 - [Trello da equipe EQ-10](https://trello.com/b/tF8cHTDq/burncare-eq-10-desenvolvimento)
+
+---
+
+**BurnCare — CTQ HU | EQ-10**
+
+Projeto acadêmico em desenvolvimento. Não disponível para uso clínico.
