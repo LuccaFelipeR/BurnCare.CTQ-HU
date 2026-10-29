@@ -1,5 +1,5 @@
 
-import { View, StyleSheet, useWindowDimensions, Text} from "react-native";
+import { View, StyleSheet, useWindowDimensions, Text } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import Sidebar from "../components/SideBar";
@@ -25,7 +25,8 @@ function Layout({ navigation, paginaAtual, children }) {
         telaPequena={telaPequena}
       />
 
-      <View style={estilos.conteudo}>
+      <View style={[estilos.conteudo, telaPequena && estilos.conteudoMobile]}
+      >
         {children}
       </View>
     </View>
@@ -72,19 +73,27 @@ export default function RootNavigator() {
   );
 }
 
+
 const estilos = StyleSheet.create({
   container: {
     flex: 1,
     flexDirection: "row",
-    backgroundColor: "#F4F8FA"
+    backgroundColor: "#F4F8FA",
+    minWidth: 0,
+    minHeight: 0,
+    overflow: "hidden"
   },
 
   containerMobile: {
-    flexDirection: "column"
+    flexDirection: "column",
+    width: "100%"
   },
 
   conteudo: {
     flex: 1,
-    minWidth: 0
+    minWidth: 0,
+    minHeight: 0,
+    width: "100%",
+    overflow: "hidden"
   }
 });

@@ -12,9 +12,10 @@ export default function Home({ navigation }) {
 
   return (
     <ScrollView
-      style={estilos.container}
-      contentContainerStyle={estilos.conteudo}
-    >
+  style={estilos.container}
+  contentContainerStyle={estilos.conteudo}
+  horizontal={false}
+>
       <Text style={estilos.titulo}>Visão geral</Text>
 
       <Text style={estilos.subtitulo}>
@@ -100,8 +101,8 @@ const estilos = StyleSheet.create({
   },
 
   conteudo: {
-    padding: 25,
-    gap: 15
+    padding: 16,
+    gap: 12
   },
 
   titulo: {
@@ -143,20 +144,23 @@ const estilos = StyleSheet.create({
   },
 
   indicadores: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12
-  },
+  flexDirection: "row",
+  flexWrap: "wrap",
+  gap: 12,
+  width: "100%"
+},
 
-  indicador: {
-    flexGrow: 1,
-    flexBasis: 170,
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: "#DDE8EE",
-    borderRadius: 12,
-    padding: 20
-  },
+indicador: {
+  flexGrow: 1,
+  flexBasis: 140,
+  flexShrink: 1,
+  minWidth: 0,
+  backgroundColor: "#FFFFFF",
+  borderWidth: 1,
+  borderColor: "#DDE8EE",
+  borderRadius: 12,
+  padding: 16
+},
 
   valor: {
     fontSize: 28,
