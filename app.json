@@ -6,6 +6,9 @@
     "userInterfaceStyle": "light",
     "web": {
       "name": "BurnCare"
-    }
+    },
+    "plugins": [
+      "expo-font"
+    ]
   }
 }
