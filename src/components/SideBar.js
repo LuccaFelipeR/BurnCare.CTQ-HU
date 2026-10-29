@@ -1,52 +1,102 @@
-import { StyleSheet, Text, View } from "react-native";
 
+import { View, Text, Pressable, StyleSheet, ScrollView } from "react-native";
 
-export default function Sidebar(){
-    return(
-        <View style={estilos.sidebar}>
-            <Text style={estilos.logo}>+ BurnCare</Text>
+export default function Sidebar({
+  paginaAtual,
+  onNavegar,
+  telaPequena
+}) {
+  const menus = [
+    { nome: "VisaoGeral", titulo: "Visão geral" },
+    { nome: "NovoPedido", titulo: "Novo pedido" },
+    { nome: "Historico", titulo: "Histórico de pedidos" }
+  ];
 
+  return (
+    <View style={[
+      estilos.sidebar,
+      telaPequena && estilos.sidebarMobile
+    ]}>
+      <Text style={estilos.logo}>✚ BurnCare</Text>
 
-            <Text style={estilos.identificacao}>
-                CTQ · HOSPITAL UNIVERSITÁRIO
-                </Text>
+      {!telaPequena && (
+        <Text style={estilos.identificacao}>
+          CTQ · HOSPITAL UNIVERSITÁRIO
+        </Text>
+      )}
 
-            <View style={estilos.menu}>
-                <Text style={estilos.textoMenu}>Visão geral</Text>
-                <Text style={estilos.textoMenu}>Novo Pedido</Text>
-                <Text style={estilos.textoMenu}>Histórico de pedidos</Text>
-                <Text style={estilos.textoMenu}>Gestão e documentos</Text>
-                
-            </View>
-        </View>
-        
-    )
+      <ScrollView
+        horizontal={telaPequena}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={[
+          estilos.menu,
+          telaPequena && estilos.menuMobile
+        ]}
+      >
+        {menus.map((menu) => (
+          <Pressable
+            key={menu.nome}
+            onPress={() => onNavegar(menu.nome)}
+            style={[
+              estilos.botao,
+              paginaAtual === menu.nome && estilos.botaoAtivo
+            ]}
+          >
+            <Text style={estilos.textoMenu}>
+              {menu.titulo}
+            </Text>
+          </Pressable>
+        ))}
+      </ScrollView>
+    </View>
+  );
 }
+
 const estilos = StyleSheet.create({
-    sidebar:{
-        width:246,
-        backgroundColor: "#18354B",
-        padding: 20,
-        minHeight:"100%"
-    },
-    logo:{
-        color:"#ffffff",
-        fontSize:24,
-        fontWeight:"bold",
-        marginBottom:12
-    },
+  sidebar: {
+    width: 246,
+    backgroundColor: "#19384C",
+    padding: 20
+  },
 
-    identificacao: {
-        color: "#b5d2da",
-        fontSize: 11,
-        marginBottom: 35
-    },
+  sidebarMobile: {
+    width: "100%",
+    padding: 12
+  },
 
-    menu: {
-        gap: 20
-    },
-    textoMenu:{
-        fontWeight:"bold",
-        color:"#ffffff"
-    }
-})
+  logo: {
+    fontSize: 23,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+    marginBottom: 12
+  },
+
+  identificacao: {
+    color: "#B5D2DA",
+    fontSize: 11,
+    marginBottom: 30
+  },
+
+  menu: {
+    gap: 10
+  },
+
+  menuMobile: {
+    flexDirection: "row"
+  },
+
+  botao: {
+    padding: 13,
+    borderRadius: 8
+  },
+
+  botaoAtivo: {
+    backgroundColor: "#0C716B"
+  },
+
+  textoMenu: {
+    color: "#FFFFFF",
+    fontWeight: "bold",
+    fontSize: 13
+  }
+});
