@@ -1,10 +1,14 @@
 
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, ScrollView } from "react-native";
+import IdentificacaoForm from '../components/forms/IdentificacaoForm';
 
 export default function NovoPedido() {
   return (
     // VIEW 1 — Área principal da página
-    <View style={estilos.container}>
+    <ScrollView
+      style={estilos.container}
+      contentContainerStyle={estilos.conteudo}
+    >
 
       {/* VIEW 2 — Título e descrição */}
       <View style={estilos.cabecalho}>
@@ -47,6 +51,10 @@ export default function NovoPedido() {
 
           {/* VIEW 6 — Área dos campos */}
           <View>
+            <IdentificacaoForm
+              formData={{}}
+              setFormData={() => {}}
+              />
             {/* Campos serão adicionados aqui */}
           </View>
 
@@ -58,14 +66,18 @@ export default function NovoPedido() {
 
       </View>
 
-    </View>
+    </ScrollView>
   );
 }
 
 const estilos = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f4f8fa",
+    backgroundColor: "#f4f8fa"
+  },
+
+  conteudo: {
+    flexGrow: 1,
     padding: 24
   },
 
@@ -112,7 +124,7 @@ const estilos = StyleSheet.create({
 
   formulario: {
     flex: 1,
-    backgroundColor: "#c48787",
+    backgroundColor: "#ffffff",
     padding: 24,
     borderRadius: 12
   },
