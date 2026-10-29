@@ -1,21 +1,21 @@
-
 import { View, Text, Pressable, ScrollView, StyleSheet } from "react-native";
+import CardIndicador from "../components/CardIndicador";
 
 export default function Home({ navigation }) {
   // Indicadores sem dados reais por enquanto
   const indicadores = [
-    { titulo: "Pedidos em aberto", valor: "—" },
-    { titulo: "Em produção", valor: "—" },
-    { titulo: "Aguardando prova", valor: "—" },
-    { titulo: "Concluídos", valor: "—" }
+    { titulo: "Pedidos em aberto", valor: 0 },
+    { titulo: "Em produção", valor: 0 },
+    { titulo: "Aguardando prova", valor: 0 },
+    { titulo: "Concluídos", valor: 0 }
   ];
 
   return (
     <ScrollView
-  style={estilos.container}
-  contentContainerStyle={estilos.conteudo}
-  horizontal={false}
->
+      style={estilos.container}
+      contentContainerStyle={estilos.conteudo}
+      horizontal={false}
+    >
       <Text style={estilos.titulo}>Visão geral</Text>
 
       <Text style={estilos.subtitulo}>
@@ -37,18 +37,11 @@ export default function Home({ navigation }) {
 
       <View style={estilos.indicadores}>
         {indicadores.map((indicador) => (
-          <View
+          <CardIndicador
             key={indicador.titulo}
-            style={estilos.indicador}
-          >
-            <Text style={estilos.valor}>
-              {indicador.valor}
-            </Text>
-
-            <Text style={estilos.indicadorTitulo}>
-              {indicador.titulo}
-            </Text>
-          </View>
+            titulo={indicador.titulo}
+            valor={indicador.valor}
+          />
         ))}
       </View>
 
@@ -144,23 +137,23 @@ const estilos = StyleSheet.create({
   },
 
   indicadores: {
-  flexDirection: "row",
-  flexWrap: "wrap",
-  gap: 12,
-  width: "100%"
-},
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+    width: "100%"
+  },
 
-indicador: {
-  flexGrow: 1,
-  flexBasis: 140,
-  flexShrink: 1,
-  minWidth: 0,
-  backgroundColor: "#FFFFFF",
-  borderWidth: 1,
-  borderColor: "#DDE8EE",
-  borderRadius: 12,
-  padding: 16
-},
+  indicador: {
+    flexGrow: 1,
+    flexBasis: 140,
+    flexShrink: 1,
+    minWidth: 0,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#DDE8EE",
+    borderRadius: 12,
+    padding: 16
+  },
 
   valor: {
     fontSize: 28,
