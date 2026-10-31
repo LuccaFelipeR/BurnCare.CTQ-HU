@@ -1,8 +1,11 @@
 
+import { useState } from "react";
 import { View, Text, StyleSheet, ScrollView } from "react-native";
 import IdentificacaoForm from '../components/forms/IdentificacaoForm';
 
 export default function NovoPedido() {
+  const [formData, setFormData] = useState({});
+
   return (
     // VIEW 1 — Área principal da página
     <ScrollView
@@ -52,9 +55,9 @@ export default function NovoPedido() {
           {/* VIEW 6 — Área dos campos */}
           <View>
             <IdentificacaoForm
-              formData={{}}
-              setFormData={() => {}}
-              />
+              formData={formData}
+              setFormData={setFormData}
+            />
             {/* Campos serão adicionados aqui */}
           </View>
 
