@@ -11,7 +11,7 @@ import {
 const campos = [
   {
     nome: "nome",
-    rotulo: "Nome fictício do paciente *",
+    rotulo: "Nome do paciente *",
     placeholder: "Paciente demonstrativo",
     larguraTotal: true
   },
@@ -23,23 +23,23 @@ const campos = [
   {
     nome: "dataAtendimento",
     rotulo: "Data do atendimento",
-    placeholder: "AAAA-MM-DD"
+    placeholder: "DD-MM-AAAA"
   },
   {
     nome: "idade",
     rotulo: "Idade",
-    placeholder: "Ex.: 32",
+    placeholder: "Ex: 32",
     keyboardType: "numeric"
   },
   {
     nome: "cidade",
     rotulo: "Cidade",
-    placeholder: "Ex.: Londrina"
+    placeholder: "Ex: Londrina"
   },
   {
     nome: "endereco",
     rotulo: "Endereço",
-    placeholder: "Somente dados fictícios",
+    placeholder: "Rua Exemplo, 123",
     larguraTotal: true
   },
   {
@@ -50,18 +50,18 @@ const campos = [
   {
     nome: "peso",
     rotulo: "Peso (kg)",
-    placeholder: "Ex.: 70",
+    placeholder: "Ex: 70",
     keyboardType: "decimal-pad"
   },
   {
     nome: "altura",
     rotulo: "Altura (cm)",
-    placeholder: "Ex.: 170",
+    placeholder: "Ex: 170",
     keyboardType: "decimal-pad"
   },
   {
     nome: "profissional",
-    rotulo: "Profissional solicitante (demonstração) *",
+    rotulo: "Profissional solicitante",
     placeholder: "Médico responsável pela prescrição",
     larguraTotal: true
   }
@@ -70,10 +70,11 @@ const campos = [
 const tiposSolicitacao = [
   "Primeira malha",
   "Segunda malha",
-  "Ajuste de peça"
 ];
 
 function Campo({ campo, valor, onChangeText, isMobile }) {
+  const ehData = campo.nome === "dataAtendimento";
+
   return (
     <View
       style={[
@@ -84,14 +85,25 @@ function Campo({ campo, valor, onChangeText, isMobile }) {
     >
       <Text style={estilos.rotulo}>{campo.rotulo}</Text>
 
-      <TextInput
-        accessibilityLabel={campo.rotulo}
-        style={estilos.entrada}
-        value={valor}
-        onChangeText={onChangeText}
-        placeholder={campo.placeholder}
-        keyboardType={campo.keyboardType || "default"}
-      />
+      {ehData ? (
+        <input
+          aria-label={campo.rotulo}
+          type="date"
+          value={valor || ""}
+          onChange={(event) => onChangeText(event.currentTarget.value)}
+          style={estilos.entradaData}
+        />
+      ) : (
+        <TextInput
+          accessibilityLabel={campo.rotulo}
+          style={estilos.entrada}
+          value={valor}
+          onChangeText={onChangeText}
+          placeholder={campo.placeholder}
+          placeholderTextColor="rgba(0, 0, 0, 0.31)"
+          keyboardType={campo.keyboardType || "default"}
+        />
+      )}
     </View>
   );
 }
@@ -254,8 +266,9 @@ const estilos = StyleSheet.create({
 
   rotulo: {
     fontSize: 13,
-    fontWeight: "600",
+    fontWeight: "650",
     color: "#334155"
+
   },
 
   entrada: {
@@ -270,7 +283,19 @@ const estilos = StyleSheet.create({
     color: "#1E293B",
     backgroundColor: "#FFFFFF"
   },
-
+  entradaData: {
+    minHeight: 42,
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+    borderRadius: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    paddingLeft: 10,
+    alignItems: "center",
+    fontSize: 14,
+    color: "#1E293B",
+    backgroundColor: "#FFFFFF"
+  },
   opcoes: {
     flexDirection: "row",
     flexWrap: "wrap",
