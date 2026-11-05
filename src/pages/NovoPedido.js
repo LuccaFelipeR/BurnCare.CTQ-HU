@@ -1,21 +1,44 @@
 
 import { useState } from "react";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
-import IdentificacaoForm from '../components/forms/IdentificacaoForm';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  useWindowDimensions
+} from "react-native";
+
+import IdentificacaoForm from "../components/forms/IdentificacaoForm";
 
 export default function NovoPedido() {
   const [formData, setFormData] = useState({});
+  const { width } = useWindowDimensions();
+
+  // Em telas menores que 768px, organiza tudo verticalmente.
+  const isMobile = width < 768;
+
+  const etapas = [
+    "1. Paciente e prescrição",
+    "2. Região e produto",
+    "3. Medidas e anexos",
+    "4. Conferência"
+  ];
 
   return (
-    // VIEW 1 — Área principal da página
     <ScrollView
       style={estilos.container}
-      contentContainerStyle={estilos.conteudo}
+      contentContainerStyle={[
+        estilos.conteudo,
+        isMobile && estilos.conteudoMobile
+      ]}
+      keyboardShouldPersistTaps="handled"
     >
-
-      {/* VIEW 2 — Título e descrição */}
+      {/* Cabeçalho */}
       <View style={estilos.cabecalho}>
-        <Text style={estilos.titulo}>
+        <Text style={[
+          estilos.titulo,
+          isMobile && estilos.tituloMobile
+        ]}>
           Novo pedido de malha
         </Text>
 
@@ -24,51 +47,53 @@ export default function NovoPedido() {
         </Text>
       </View>
 
-      {/* VIEW 3 — Área que organiza etapas e formulário */}
-      <View style={estilos.areaEtapas}>
+      {/* Etapas e formulário */}
+      <View style={[
+        estilos.areaEtapas,
+        isMobile && estilos.areaEtapasMobile
+      ]}>
 
-        {/* VIEW 4 — Menu de etapas (lado esquerdo) */}
-        <View style={estilos.menuEtapas}>
-          <Text style={estilos.etapaAtiva}>
-            1. Paciente e prescrição
-          </Text>
-
-          <Text style={estilos.etapa}>
-            2. Região e produto
-          </Text>
-
-          <Text style={estilos.etapa}>
-            3. Medidas e anexos
-          </Text>
-
-          <Text style={estilos.etapa}>
-            4. Conferência
-          </Text>
+        {/* Menu de etapas */}
+        <View style={[
+          estilos.menuEtapas,
+          isMobile && estilos.menuEtapasMobile
+        ]}>
+          {etapas.map((etapa, index) => (
+            <View
+              key={etapa}
+              style={[
+                estilos.itemEtapa,
+                index === 0 && estilos.itemEtapaAtiva
+              ]}
+            >
+              <Text style={[
+                estilos.textoEtapa,
+                index === 0 && estilos.textoEtapaAtiva
+              ]}>
+                {etapa}
+              </Text>
+            </View>
+          ))}
         </View>
 
-        {/* VIEW 5 — Formulário (lado direito) */}
-        <View style={estilos.formulario}>
-          <Text style={estilos.tituloFormulario}>
+        {/* Formulário */}
+        <View style={[
+          estilos.formulario,
+          isMobile && estilos.formularioMobile
+        ]}>
+          <Text style={[
+            estilos.tituloFormulario,
+            isMobile && estilos.tituloFormularioMobile
+          ]}>
             Prescrição médica e identificação
           </Text>
 
-          {/* VIEW 6 — Área dos campos */}
-          <View>
-            <IdentificacaoForm
-              formData={formData}
-              setFormData={setFormData}
-            />
-            {/* Campos serão adicionados aqui */}
-          </View>
-
-          {/* VIEW 7 — Área dos botões */}
-          <View>
-            {/* Cancelar e Continuar serão adicionados aqui */}
-          </View>
+          <IdentificacaoForm
+            formData={formData}
+            setFormData={setFormData}
+          />
         </View>
-
       </View>
-
     </ScrollView>
   );
 }
@@ -84,6 +109,10 @@ const estilos = StyleSheet.create({
     padding: 24
   },
 
+  conteudoMobile: {
+    padding: 12
+  },
+
   cabecalho: {
     marginBottom: 20
   },
@@ -92,6 +121,10 @@ const estilos = StyleSheet.create({
     fontSize: 28,
     fontWeight: "bold",
     color: "#203449"
+  },
+
+  tituloMobile: {
+    fontSize: 23
   },
 
   descricao: {
@@ -106,30 +139,53 @@ const estilos = StyleSheet.create({
     alignItems: "flex-start"
   },
 
-  menuEtapas: {
-    width: 190,
-    gap: 16
+  areaEtapasMobile: {
+    flexDirection: "column",
+    alignItems: "stretch",
+    gap: 12
   },
 
-  etapaAtiva: {
-    backgroundColor: "#e4f4ee",
-    color: "#0c716b",
-    fontWeight: "bold",
+  menuEtapas: {
+    width: 190,
+    gap: 12
+  },
+
+  menuEtapasMobile: {
+    width: "100%",
+    gap: 6
+  },
+
+  itemEtapa: {
     padding: 12,
     borderRadius: 6
   },
 
-  etapa: {
+  itemEtapaAtiva: {
+    backgroundColor: "#e4f4ee"
+  },
+
+  textoEtapa: {
     color: "#657888",
     fontWeight: "bold",
-    padding: 12
+    fontSize: 13
+  },
+
+  textoEtapaAtiva: {
+    color: "#0c716b"
   },
 
   formulario: {
     flex: 1,
+    minWidth: 0,
     backgroundColor: "#ffffff",
     padding: 24,
     borderRadius: 12
+  },
+
+  formularioMobile: {
+    flex: 0,
+    width: "100%",
+    padding: 12
   },
 
   tituloFormulario: {
@@ -137,5 +193,10 @@ const estilos = StyleSheet.create({
     fontWeight: "bold",
     color: "#203449",
     marginBottom: 20
+  },
+
+  tituloFormularioMobile: {
+    fontSize: 18,
+    marginBottom: 14
   }
 });

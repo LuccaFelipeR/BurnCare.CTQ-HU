@@ -1,4 +1,12 @@
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  useWindowDimensions
+} from "react-native";
 
 const campos = [
   {
@@ -64,14 +72,15 @@ const tiposSolicitacao = [
   "Segunda malha",
 ];
 
-function Campo({ campo, valor, onChangeText }) {
+function Campo({ campo, valor, onChangeText, isMobile }) {
   const ehData = campo.nome === "dataAtendimento";
 
   return (
     <View
       style={[
         estilos.campo,
-        campo.larguraTotal && estilos.campoInteiro
+        campo.larguraTotal && estilos.campoInteiro,
+        isMobile && estilos.campoMobile
       ]}
     >
       <Text style={estilos.rotulo}>{campo.rotulo}</Text>
@@ -99,55 +108,82 @@ function Campo({ campo, valor, onChangeText }) {
   );
 }
 
-export default function IdentificacaoForm({ formData, setFormData }) {
+export default function IdentificacaoForm({
+  formData,
+  setFormData
+}) {
+  const { width } = useWindowDimensions();
+  const isMobile = width < 768;
+
   const peso = Number.parseFloat(formData.peso);
   const altura = Number.parseFloat(formData.altura) / 100;
-  const imc = Number.isFinite(peso) && Number.isFinite(altura) && peso > 0 && altura > 0
-    ? (peso / (altura * altura)).toFixed(1)
-    : null;
+
+  const imc =
+    Number.isFinite(peso) &&
+    Number.isFinite(altura) &&
+    peso > 0 &&
+    altura > 0
+      ? (peso / (altura * altura)).toFixed(1)
+      : null;
 
   const atualizarCampo = (nome, valor) => {
-    setFormData((anterior) => ({ ...anterior, [nome]: valor }));
+    setFormData((anterior) => ({
+      ...anterior,
+      [nome]: valor
+    }));
   };
 
   return (
-    <View style={estilos.container}>
-      <View>
-        <Text style={estilos.titulo}>
-        </Text>
-      </View>
-
+    <View
+      style={[
+        estilos.container,
+        isMobile && estilos.containerMobile
+      ]}
+    >
       <View style={estilos.grade}>
         {campos.slice(0, 2).map((campo) => (
           <Campo
             key={campo.nome}
             campo={campo}
             valor={formData[campo.nome] || ""}
-            onChangeText={(valor) => atualizarCampo(campo.nome, valor)}
+            onChangeText={(valor) =>
+              atualizarCampo(campo.nome, valor)
+            }
+            isMobile={isMobile}
           />
         ))}
 
         <View style={estilos.campoInteiro}>
-          <Text style={estilos.rotulo}>Tipo de solicitação *</Text>
+          <Text style={estilos.rotulo}>
+            Tipo de solicitação *
+          </Text>
+
           <View style={estilos.opcoes}>
             {tiposSolicitacao.map((tipo) => {
-              const selecionado = (formData.tipoSolicitacao || tiposSolicitacao[0]) === tipo;
+              const selecionado =
+                (formData.tipoSolicitacao || tiposSolicitacao[0]) === tipo;
 
               return (
                 <Pressable
                   key={tipo}
                   accessibilityRole="radio"
-                  accessibilityState={{ selected: selecionado }}
-                  onPress={() => atualizarCampo("tipoSolicitacao", tipo)}
+                  accessibilityState={{
+                    selected: selecionado
+                  }}
+                  onPress={() =>
+                    atualizarCampo("tipoSolicitacao", tipo)
+                  }
                   style={[
                     estilos.opcao,
                     selecionado && estilos.opcaoSelecionada
                   ]}
                 >
-                  <Text style={[
-                    estilos.textoOpcao,
-                    selecionado && estilos.textoOpcaoSelecionada
-                  ]}>
+                  <Text
+                    style={[
+                      estilos.textoOpcao,
+                      selecionado && estilos.textoOpcaoSelecionada
+                    ]}
+                  >
                     {tipo}
                   </Text>
                 </Pressable>
@@ -161,7 +197,10 @@ export default function IdentificacaoForm({ formData, setFormData }) {
             key={campo.nome}
             campo={campo}
             valor={formData[campo.nome] || ""}
-            onChangeText={(valor) => atualizarCampo(campo.nome, valor)}
+            onChangeText={(valor) =>
+              atualizarCampo(campo.nome, valor)
+            }
+            isMobile={isMobile}
           />
         ))}
       </View>
@@ -175,9 +214,14 @@ export default function IdentificacaoForm({ formData, setFormData }) {
       )}
 
       <View style={estilos.aviso}>
-        <Text style={estilos.tituloAviso}>Observação importante:</Text>
+        <Text style={estilos.tituloAviso}>
+          Observação importante:
+        </Text>
+
         <Text style={estilos.textoAviso}>
-          A segunda malha é uma indicação da ficha médica. O ajuste de uma peça já produzida é outro processo e permanece vinculado ao pedido original.
+          A segunda malha é uma indicação da ficha médica.
+          O ajuste de uma peça já produzida é outro processo
+          e permanece vinculado ao pedido original.
         </Text>
       </View>
     </View>
@@ -193,37 +237,42 @@ const estilos = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E2E8F0"
   },
-  titulo: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#1E293B",
-    marginBottom: 6
+
+  containerMobile: {
+    padding: 12,
+    gap: 16
   },
-  descricao: {
-    fontSize: 13,
-    color: "#64748B",
-    lineHeight: 19
-  },
+
   grade: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 12
   },
+
   campo: {
     width: "48%",
-    minWidth: 140,
+    minWidth: 0,
     gap: 6
   },
+
   campoInteiro: {
+    width: "100%",
+    gap: 6
+  },
+
+  campoMobile: {
     width: "100%"
   },
+
   rotulo: {
     fontSize: 13,
     fontWeight: "650",
     color: "#334155"
 
   },
+
   entrada: {
+    width: "100%",
     minHeight: 42,
     borderWidth: 1,
     borderColor: "#CBD5E1",
@@ -235,7 +284,7 @@ const estilos = StyleSheet.create({
     backgroundColor: "#FFFFFF"
   },
   entradaData: {
-   minHeight: 42,
+    minHeight: 42,
     borderWidth: 1,
     borderColor: "#cbd5e1",
     borderRadius: 6,
@@ -248,11 +297,12 @@ const estilos = StyleSheet.create({
     backgroundColor: "#FFFFFF"
   },
   opcoes: {
-    marginTop: 6,
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8
+    gap: 8,
+    marginTop: 6
   },
+
   opcao: {
     paddingVertical: 9,
     paddingHorizontal: 12,
@@ -260,18 +310,22 @@ const estilos = StyleSheet.create({
     borderColor: "#CBD5E1",
     borderRadius: 6
   },
+
   opcaoSelecionada: {
     borderColor: "#0C716B",
     backgroundColor: "#E4F4EE"
   },
+
   textoOpcao: {
     color: "#475569",
     fontSize: 13
   },
+
   textoOpcaoSelecionada: {
     color: "#0C716B",
     fontWeight: "bold"
   },
+
   destaqueImc: {
     padding: 12,
     backgroundColor: "#ECFDF5",
@@ -279,11 +333,13 @@ const estilos = StyleSheet.create({
     borderColor: "#A7F3D0",
     borderRadius: 6
   },
+
   textoImc: {
     color: "#065F46",
     fontSize: 14,
     fontWeight: "bold"
   },
+
   aviso: {
     gap: 4,
     padding: 14,
@@ -293,11 +349,13 @@ const estilos = StyleSheet.create({
     borderTopRightRadius: 6,
     borderBottomRightRadius: 6
   },
+
   tituloAviso: {
     color: "#78350F",
     fontSize: 14,
     fontWeight: "600"
   },
+
   textoAviso: {
     color: "#92400E",
     fontSize: 12,
