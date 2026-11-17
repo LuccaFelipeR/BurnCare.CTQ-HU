@@ -1,4 +1,4 @@
-
+import { useState } from "react";
 import {
   Pressable,
   StyleSheet,
@@ -103,14 +103,17 @@ export default function IdentificacaoForm({
   const { width } = useWindowDimensions();
   const isMobile = width < 768;
 
+  const [busca, setBusca] = useState("");
+  const [statusBusca, setStatusBusca] = useState("inicial")
+
   const peso = Number.parseFloat(formData.peso);
   const altura = Number.parseFloat(formData.altura) / 100;
 
   const imc =
     Number.isFinite(peso) &&
-    Number.isFinite(altura) &&
-    peso > 0 &&
-    altura > 0
+      Number.isFinite(altura) &&
+      peso > 0 &&
+      altura > 0
       ? (peso / (altura * altura)).toFixed(1)
       : null;
 
@@ -121,6 +124,15 @@ export default function IdentificacaoForm({
     }));
   };
 
+  const buscarPaciente = () => {
+    if (!busca.trim()) {
+      setStatusBusca("vazio");
+      return
+    }
+
+    setStatusBusca("indisponivel");
+  };
+
   return (
     <View
       style={[
@@ -128,6 +140,40 @@ export default function IdentificacaoForm({
         isMobile && estilos.containerMobile
       ]}
     >
+      <View>
+        <Text style={estilos.rotulo}>
+          Buscar paciente
+        </Text>
+
+        <TextInput
+          style={estilos.entrada}
+          placeholder="Digite o identificador do paciente"
+          value={busca}
+          onChangeText={setBusca}
+          accessibilityLabel="Identificador para busca de paciente"
+
+            
+        />
+
+        <Pressable
+              onPress={buscarPaciente}
+              style={estilos.botaoBusca}
+            >
+              <Text style={estilos.textoBotaoBusca}>
+                Buscar paciente
+              </Text>
+            </Pressable>
+
+            {statusBusca === "vazio" && (
+              <Text>Informe um identificador para pesquisar.</Text>
+            )}
+
+            {statusBusca === "indisponivel" && (
+              <Text>
+                Consulta indisponível. Nenhum paciente foi consultado.
+              </Text>
+            )}
+      </View>
       <View style={estilos.grade}>
         {campos.slice(0, 2).map((campo) => (
           <Campo
@@ -335,5 +381,18 @@ const estilos = StyleSheet.create({
     color: "#92400E",
     fontSize: 12,
     lineHeight: 18
-  }
+  },
+
+  botaoBusca: {
+  backgroundColor: "#0C716B",
+  padding: 12,
+  borderRadius: 6,
+  alignItems: "center",
+  marginTop: 10,
+},
+
+textoBotaoBusca: {
+  color: "#FFFFFF",
+  fontWeight: "bold",
+},
 });
