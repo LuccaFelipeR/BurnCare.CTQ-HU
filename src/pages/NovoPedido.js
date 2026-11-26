@@ -13,15 +13,150 @@ import {
 import IdentificacaoForm from "../components/forms/IdentificacaoForm";
 import MapaCorporal from "../components/MapaCorporal";
 
+const catalogoProdutos = [
+  {
+    id: "luva-punho-direita",
+    descricao: "Luvas com dedos até o punho (mão direita)",
+    codigo: "S-47226 / E-183633",
+    codigoSus: "07.01.10.001-0"
+  },
+  {
+    id: "luva-punho-esquerda",
+    descricao: "Luvas com dedos até o punho (mão esquerda)",
+    codigo: "S-47226 / E-183633",
+    codigoSus: "07.01.10.001-0"
+  },
+  {
+    id: "meia-joelho-direita",
+    descricao: "Meia até joelho (pé direito)",
+    codigo: "S-47227 / E-183634",
+    codigoSus: "07.01.10.002-8"
+  },
+  {
+    id: "meia-joelho-esquerda",
+    descricao: "Meia até joelho (pé esquerdo)",
+    codigo: "S-47227 / E-183634",
+    codigoSus: "07.01.10.002-8"
+  },
+  {
+    id: "meio-cano-braco-direito",
+    descricao: "Meio cano de braço direito",
+    codigo: "S-47228 / E-183635",
+    codigoSus: "07.01.10.003-6"
+  },
+  {
+    id: "meio-cano-braco-esquerdo",
+    descricao: "Meio cano de braço esquerdo",
+    codigo: "S-47228 / E-183635",
+    codigoSus: "07.01.10.003-6"
+  },
+  {
+    id: "meio-cano-perna-direita",
+    descricao: "Meio cano de perna direita",
+    codigo: "S-47228 / E-183706",
+    codigoSus: "07.01.10.003-6"
+  },
+  {
+    id: "meio-cano-perna-esquerda",
+    descricao: "Meio cano de perna esquerda",
+    codigo: "S-47228 / E-183706",
+    codigoSus: "07.01.10.003-6"
+  },
+  {
+    id: "luva-ombro-direita",
+    descricao: "Luvas com dedos até ombro (mão direita)",
+    codigo: "S-47229 / E-183636",
+    codigoSus: "07.01.10.004-4"
+  },
+  {
+    id: "luva-ombro-esquerda",
+    descricao: "Luvas com dedos até ombro (mão esquerda)",
+    codigo: "S-47229 / E-183636",
+    codigoSus: "07.01.10.004-4"
+  },
+  {
+    id: "meia-tres-quartos-direita",
+    descricao: "Meia ¾ direita",
+    codigo: "S-47230 / E-183637",
+    codigoSus: "07.01.10.005-2"
+  },
+  {
+    id: "meia-tres-quartos-esquerda",
+    descricao: "Meia ¾ esquerda",
+    codigo: "S-47230 / E-183637",
+    codigoSus: "07.01.10.005-2"
+  },
+  {
+    id: "meia-perna-inteira-direita",
+    descricao: "Meia perna direita inteira",
+    codigo: "S-47231 / E-183638",
+    codigoSus: "07.01.10.006-0"
+  },
+  {
+    id: "meia-perna-inteira-esquerda",
+    descricao: "Meia perna esquerda inteira",
+    codigo: "S-47231 / E-183638",
+    codigoSus: "07.01.10.006-0"
+  },
+  {
+    id: "meia-calca",
+    descricao: "Meia calça",
+    codigo: "S-47232 / E-183639",
+    codigoSus: "07.01.10.007-9"
+  },
+  {
+    id: "torax-com-mangas",
+    descricao: "Torax com mangas",
+    codigo: "S-47233 / E-183640",
+    codigoSus: "07.01.10.008-7"
+  },
+  {
+    id: "torax-sem-mangas",
+    descricao: "Torax sem mangas",
+    codigo: "S-47234 / E-183641",
+    codigoSus: "07.01.10.009-5"
+  },
+  {
+    id: "cabeca-pescoco-mascara",
+    descricao: "Cabeça e pescoço - mascara",
+    codigo: "S-47235 / E-183642",
+    codigoSus: "07.01.10.010-9"
+  },
+  {
+    id: "cabeca-pescoco-colar-cervical",
+    descricao: "Cabeça e pescoço-colar cervical",
+    codigo: "S-47235 / E-183707",
+    codigoSus: "07.01.10.010-9"
+  }
+];
+
 export default function NovoPedido() {
   const [formData, setFormData] = useState({});
   const [etapaAtual, setEtapaAtual] = useState(0);
   const [regioesSelecionadas, setRegioesSelecionadas] = useState([]);
   const [justificativaRegiao, setJustificativaRegiao] = useState("");
+  const [buscaProduto, setBuscaProduto] = useState("");
+  const [produtosSelecionados, setProdutosSelecionados] = useState([]);
   const { width } = useWindowDimensions();
 
   // Em telas menores que 768px, organiza tudo verticalmente.
   const isMobile = width < 768;
+  const produtosFiltrados = catalogoProdutos.filter((produto) => {
+    const termoBusca = buscaProduto.trim().toLocaleLowerCase("pt-BR");
+    const dadosProduto =
+      `${produto.descricao} ${produto.codigo} ${produto.codigoSus}`
+        .toLocaleLowerCase("pt-BR");
+
+    return dadosProduto.includes(termoBusca);
+  });
+
+  function alternarProduto(produtoId) {
+    setProdutosSelecionados((selecionados) =>
+      selecionados.includes(produtoId)
+        ? selecionados.filter((id) => id !== produtoId)
+        : [...selecionados, produtoId]
+    );
+  }
 
   const etapas = [
     "1. Paciente e prescrição",
@@ -132,25 +267,64 @@ export default function NovoPedido() {
 
                   <TextInput
                     accessibilityLabel="Buscar produto"
-                    placeholder="Disponível após validação do catálogo"
-                    style={[estilos.campoBusca, estilos.campoBuscaDesabilitado]}
-                    editable={false}
+                    placeholder="Buscar por descrição ou código"
+                    value={buscaProduto}
+                    onChangeText={setBuscaProduto}
+                    style={estilos.campoBusca}
                   />
 
-                  <View style={estilos.listaVazia}>
-                    <Text style={estilos.textoListaVazia}>
-                      {regioesSelecionadas.length > 0
-                        ? "Os produtos associados às regiões selecionadas aparecerão quando o catálogo for validado pelo CTQ/HU."
-                        : "Selecione uma região. Os produtos correspondentes serão exibidos após validação do catálogo pelo CTQ/HU."}
-                    </Text>
+                  <View style={estilos.listaProdutos}>
+                    {produtosFiltrados.length > 0 ? (
+                      produtosFiltrados.map((produto) => {
+                        const marcado = produtosSelecionados.includes(produto.id);
+
+                        return (
+                          <Pressable
+                            key={produto.id}
+                            accessibilityRole="checkbox"
+                            accessibilityLabel={marcado
+                              ? `${produto.descricao}. Código ${produto.codigo}. Código SUS ${produto.codigoSus}`
+                              : produto.descricao}
+                            accessibilityState={{ checked: marcado }}
+                            style={[
+                              estilos.itemProduto,
+                              marcado && estilos.itemProdutoMarcado
+                            ]}
+                            onPress={() => alternarProduto(produto.id)}
+                          >
+                            <View
+                              style={[
+                                estilos.caixaMarcacao,
+                                marcado && estilos.caixaMarcacaoMarcada
+                              ]}
+                            >
+                              {marcado && (
+                                <Text style={estilos.marcaProduto}>✓</Text>
+                              )}
+                            </View>
+                            <View style={estilos.dadosProduto}>
+                              <Text style={estilos.nomeProduto}>
+                                {produto.descricao}
+                              </Text>
+                              {marcado && (
+                                <Text style={estilos.detalhesProduto}>
+                                  {produto.codigo} · SUS {produto.codigoSus}
+                                </Text>
+                              )}
+                            </View>
+                          </Pressable>
+                        );
+                      })
+                    ) : (
+                      <Text style={estilos.textoListaVazia}>
+                        Nenhum produto encontrado.
+                      </Text>
+                    )}
                   </View>
 
-                  <View style={estilos.avisoCatalogo}>
-                    <Text style={estilos.textoAvisoCatalogo}>
-                      Catálogo e associações anatômicas ainda não validados.
-                      Nenhum produto demonstrativo será tratado como recomendação.
-                    </Text>
-                  </View>
+                  <Text style={estilos.notaSelecao}>
+                    As marcações são temporárias neste protótipo; não são salvas nem enviadas.
+                  </Text>
                 </View>
               </View>
 
@@ -358,21 +532,6 @@ const estilos = StyleSheet.create({
     backgroundColor: "#FFFFFF"
   },
 
-  campoBuscaDesabilitado: {
-    color: "#718696",
-    backgroundColor: "#F8FAFC"
-  },
-
-  listaVazia: {
-    minHeight: 96,
-    justifyContent: "center",
-    padding: 14,
-    borderWidth: 1,
-    borderColor: "#DDE8EE",
-    borderRadius: 6,
-    backgroundColor: "#FFFFFF"
-  },
-
   textoListaVazia: {
     color: "#718696",
     fontSize: 12,
@@ -380,18 +539,71 @@ const estilos = StyleSheet.create({
     textAlign: "center"
   },
 
-  avisoCatalogo: {
-    padding: 12,
-    borderLeftWidth: 4,
-    borderLeftColor: "#F4C64D",
-    borderRadius: 6,
-    backgroundColor: "#FFF5CC"
+  listaProdutos: {
+    gap: 6
   },
 
-  textoAvisoCatalogo: {
-    color: "#7A5A10",
-    fontSize: 11,
-    lineHeight: 16
+  itemProduto: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    minHeight: 52,
+    padding: 9,
+    borderWidth: 1,
+    borderColor: "#DDE8EE",
+    borderRadius: 6,
+    backgroundColor: "#F4F8FA"
+  },
+
+  itemProdutoMarcado: {
+    borderColor: "#9CCFC3",
+    backgroundColor: "#E4F4EE"
+  },
+
+  caixaMarcacao: {
+    width: 17,
+    height: 17,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#91A4AF",
+    borderRadius: 3,
+    backgroundColor: "#FFFFFF"
+  },
+
+  caixaMarcacaoMarcada: {
+    borderColor: "#0C716B",
+    backgroundColor: "#0C716B"
+  },
+
+  marcaProduto: {
+    color: "#FFFFFF",
+    fontSize: 12,
+    lineHeight: 15,
+    fontWeight: "bold"
+  },
+
+  dadosProduto: {
+    flex: 1,
+    gap: 3
+  },
+
+  nomeProduto: {
+    color: "#203449",
+    fontSize: 12,
+    fontWeight: "bold"
+  },
+
+  detalhesProduto: {
+    color: "#718696",
+    fontSize: 10,
+    lineHeight: 14
+  },
+
+  notaSelecao: {
+    color: "#718696",
+    fontSize: 10,
+    lineHeight: 14
   },
 
   campoJustificativa: {
