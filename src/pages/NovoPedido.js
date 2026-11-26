@@ -130,6 +130,47 @@ const catalogoProdutos = [
   }
 ];
 
+const produtosPorRegiao = {
+  "perna-direita": [
+    "meia-joelho-direita",
+    "meio-cano-perna-direita",
+    "meia-tres-quartos-direita",
+    "meia-perna-inteira-direita",
+    "meia-calca"
+  ],
+  "perna-esquerda": [
+    "meia-joelho-esquerda",
+    "meio-cano-perna-esquerda",
+    "meia-tres-quartos-esquerda",
+    "meia-perna-inteira-esquerda",
+    "meia-calca"
+  ],
+  "braco-direito": [
+    "meio-cano-braco-direito",
+    "luva-ombro-direita"
+  ],
+  "braco-esquerdo": [
+    "meio-cano-braco-esquerdo",
+    "luva-ombro-esquerda"
+  ],
+  tronco: [
+    "torax-com-mangas",
+    "torax-sem-mangas"
+  ],
+  cabeca: [
+    "cabeca-pescoco-mascara",
+    "cabeca-pescoco-colar-cervical"
+  ],
+  "mao-direita": [
+    "luva-punho-direita",
+    "luva-ombro-direita"
+  ],
+  "mao-esquerda": [
+    "luva-punho-esquerda",
+    "luva-ombro-esquerda"
+  ]
+};
+
 export default function NovoPedido() {
   const [formData, setFormData] = useState({});
   const [etapaAtual, setEtapaAtual] = useState(0);
@@ -141,14 +182,35 @@ export default function NovoPedido() {
 
   // Em telas menores que 768px, organiza tudo verticalmente.
   const isMobile = width < 768;
-  const produtosFiltrados = catalogoProdutos.filter((produto) => {
-    const termoBusca = buscaProduto.trim().toLocaleLowerCase("pt-BR");
+  const idsProdutosDisponiveis = new Set(
+    regioesSelecionadas.flatMap(
+      ({ regiao }) => produtosPorRegiao[regiao] || []
+    )
+  );
+  const produtosDisponiveis = catalogoProdutos.filter((produto) =>
+    idsProdutosDisponiveis.has(produto.id)
+  );
+  const termoBuscaProduto = buscaProduto.trim().toLocaleLowerCase("pt-BR");
+  const produtosFiltrados = produtosDisponiveis.filter((produto) => {
     const dadosProduto =
       `${produto.descricao} ${produto.codigo} ${produto.codigoSus}`
         .toLocaleLowerCase("pt-BR");
 
-    return dadosProduto.includes(termoBusca);
+    return dadosProduto.includes(termoBuscaProduto);
   });
+
+  function atualizarRegioesSelecionadas(novasRegioes) {
+    const idsDisponiveis = new Set(
+      novasRegioes.flatMap(
+        ({ regiao }) => produtosPorRegiao[regiao] || []
+      )
+    );
+
+    setRegioesSelecionadas(novasRegioes);
+    setProdutosSelecionados((selecionados) =>
+      selecionados.filter((id) => idsDisponiveis.has(id))
+    );
+  }
 
   function alternarProduto(produtoId) {
     setProdutosSelecionados((selecionados) =>
@@ -257,7 +319,7 @@ export default function NovoPedido() {
               >
                 <MapaCorporal
                   selecionadas={regioesSelecionadas}
-                  onChange={setRegioesSelecionadas}
+                  onChange={atualizarRegioesSelecionadas}
                 />
 
                 <View style={estilos.catalogo}>
@@ -273,7 +335,13 @@ export default function NovoPedido() {
                     style={estilos.campoBusca}
                   />
 
-                  <View style={estilos.listaProdutos}>
+                  <ScrollView
+                    style={estilos.listaProdutos}
+                    contentContainerStyle={estilos.conteudoListaProdutos}
+                    nestedScrollEnabled
+                    showsVerticalScrollIndicator
+                    keyboardShouldPersistTaps="handled"
+                  >
                     {produtosFiltrados.length > 0 ? (
                       produtosFiltrados.map((produto) => {
                         const marcado = produtosSelecionados.includes(produto.id);
@@ -317,16 +385,41 @@ export default function NovoPedido() {
                       })
                     ) : (
                       <Text style={estilos.textoListaVazia}>
-                        Nenhum produto encontrado.
+                        {regioesSelecionadas.length === 0
+                          ? "Selecione uma parte do corpo para ver os produtos correspondentes."
+                          : produtosDisponiveis.length === 0
+                            ? "Não há produtos da lista informada para as partes selecionadas."
+                            : "Nenhum produto encontrado para essa busca."}
                       </Text>
                     )}
-                  </View>
+                  </ScrollView>
 
-                  <Text style={estilos.notaSelecao}>
-                    As marcações são temporárias neste protótipo; não são salvas nem enviadas.
-                  </Text>
+                  <View
+                    accessibilityRole="alert"
+                    style={estilos.alertaSelecao}
+                  >
+                    <Text style={estilos.textoAlertaSelecao}>
+                      O modelo da malha requer validação clínica!
+                    </Text>
+                  </View>
                 </View>
               </View>
+
+              {regioesSelecionadas.length > 0 && (
+                <View style={estilos.regioesSelecionadas}>
+                  <Text style={estilos.rotuloCampo}>Regiões selecionadas</Text>
+                  <View style={estilos.listaRegioesSelecionadas}>
+                    {regioesSelecionadas.map((item) => (
+                      <Text
+                        key={item.id}
+                        style={estilos.itemRegiaoSelecionada}
+                      >
+                        {item.nome} · {item.vista === "frente" ? "Frente" : "Costas"}
+                      </Text>
+                    ))}
+                  </View>
+                </View>
+              )}
 
               <View style={estilos.campoJustificativa}>
                 <Text style={estilos.rotuloCampo}>
@@ -405,9 +498,9 @@ const estilos = StyleSheet.create({
   },
 
   titulo: {
-    fontSize: 28,
+    fontSize: 27,
     fontWeight: "bold",
-    color: "#203449"
+    color: "#19384C"
   },
 
   tituloMobile: {
@@ -417,7 +510,7 @@ const estilos = StyleSheet.create({
   descricao: {
     fontSize: 14,
     color: "#657888",
-    marginTop: 12
+    marginTop: 10
   },
 
   areaEtapas: {
@@ -458,7 +551,7 @@ const estilos = StyleSheet.create({
   },
 
   textoEtapaAtiva: {
-    color: "#0c716b"
+    color: "#0C716B"
   },
 
   formulario: {
@@ -476,10 +569,10 @@ const estilos = StyleSheet.create({
   },
 
   tituloFormulario: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "bold",
-    color: "#203449",
-    marginBottom: 20
+    color: "#19384C",
+    marginBottom: 16
   },
 
   tituloFormularioMobile: {
@@ -489,6 +582,29 @@ const estilos = StyleSheet.create({
 
   etapaRegiao: {
     gap: 14
+  },
+
+  regioesSelecionadas: {
+    gap: 6
+  },
+
+  listaRegioesSelecionadas: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "flex-start",
+    gap: 6
+  },
+
+  itemRegiaoSelecionada: {
+    color: "#0C716B",
+    fontSize: 12,
+    lineHeight: 16,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderWidth: 1,
+    borderColor: "#9CCFC3",
+    borderRadius: 14,
+    backgroundColor: "#E4F4EE"
   },
 
   conteudoRegiao: {
@@ -509,14 +625,14 @@ const estilos = StyleSheet.create({
   },
 
   descricaoEtapa: {
-    color: "#718696",
-    fontSize: 12
+    color: "#657888",
+    fontSize: 14
   },
 
   rotuloCampo: {
-    color: "#718696",
-    fontSize: 11,
-    fontWeight: "bold"
+    color: "#334155",
+    fontSize: 13,
+    fontWeight: "600"
   },
 
   campoBusca: {
@@ -534,13 +650,23 @@ const estilos = StyleSheet.create({
 
   textoListaVazia: {
     color: "#718696",
-    fontSize: 12,
-    lineHeight: 18,
+    fontSize: 13,
+    lineHeight: 19,
     textAlign: "center"
   },
 
   listaProdutos: {
-    gap: 6
+    height: 300,
+    flexGrow: 0,
+    borderWidth: 1,
+    borderColor: "#DDE8EE",
+    borderRadius: 6
+  },
+
+  conteudoListaProdutos: {
+    flexGrow: 1,
+    gap: 6,
+    padding: 6
   },
 
   itemProduto: {
@@ -589,21 +715,28 @@ const estilos = StyleSheet.create({
   },
 
   nomeProduto: {
-    color: "#203449",
-    fontSize: 12,
+    color: "#334155",
+    fontSize: 13,
     fontWeight: "bold"
   },
 
   detalhesProduto: {
     color: "#718696",
-    fontSize: 10,
-    lineHeight: 14
+    fontSize: 12,
+    lineHeight: 16
   },
 
-  notaSelecao: {
-    color: "#718696",
-    fontSize: 10,
-    lineHeight: 14
+  alertaSelecao: {
+    width: "100%",
+    padding: 12,
+    borderRadius: 10,
+    backgroundColor: "#FFF4E5"
+  },
+
+  textoAlertaSelecao: {
+    color: "#B45309",
+    fontSize: 12,
+    lineHeight: 18
   },
 
   campoJustificativa: {
@@ -612,8 +745,8 @@ const estilos = StyleSheet.create({
 
   avisoDesenho: {
     color: "#718696",
-    fontSize: 11,
-    lineHeight: 16
+    fontSize: 12,
+    lineHeight: 18
   },
 
   navegacaoEtapas: {
@@ -637,7 +770,7 @@ const estilos = StyleSheet.create({
 
   textoVoltar: {
     color: "#718696",
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: "bold"
   },
 
@@ -652,7 +785,7 @@ const estilos = StyleSheet.create({
 
   textoContinuar: {
     color: "#FFFFFF",
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: "bold"
   },
 
@@ -661,7 +794,7 @@ const estilos = StyleSheet.create({
   },
 
   textoEtapaPendente: {
-    color: "#718696",
-    fontSize: 13
+    color: "#657888",
+    fontSize: 14
   }
 });

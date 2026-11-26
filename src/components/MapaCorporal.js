@@ -12,6 +12,9 @@ const nomesDasVistas = {
   costas: "Costas"
 };
 
+const LARGURA_MAPA = 210;
+const ALTURA_MAPA = 350;
+
 const regioes = [
   {
     id: "cabeca",
@@ -111,8 +114,8 @@ const formatarPonto = (event, drawingLayer) => {
     return null;
   }
 
-  const largura = limites && limites.width ? limites.width : 180;
-  const altura = limites && limites.height ? limites.height : 300;
+  const largura = limites && limites.width ? limites.width : LARGURA_MAPA;
+  const altura = limites && limites.height ? limites.height : ALTURA_MAPA;
   const x = Math.max(0, Math.min(120, (locationX / largura) * 120));
   const y = Math.max(0, Math.min(200, (locationY / altura) * 200));
 
@@ -234,8 +237,8 @@ export default function MapaCorporal({ selecionadas, onChange }) {
 
       <View style={estilos.areaMapa}>
         <Svg
-          width={180}
-          height={300}
+          width={LARGURA_MAPA}
+          height={ALTURA_MAPA}
           viewBox="0 0 120 200"
           pointerEvents="none"
         >
@@ -353,24 +356,13 @@ export default function MapaCorporal({ selecionadas, onChange }) {
           </Pressable>
         )}
       </View>
-
-      {selecionadas.length > 0 && (
-        <View style={estilos.selecionadas}>
-          <Text style={estilos.rotuloSelecionadas}>Regiões selecionadas</Text>
-          {selecionadas.map((item) => (
-            <Text key={item.id} style={estilos.textoSelecionada}>
-              {item.nome} · {nomesDasVistas[item.vista]}
-            </Text>
-          ))}
-        </View>
-      )}
     </View>
   );
 }
 
 const estilos = StyleSheet.create({
   container: {
-    width: 220,
+    width: LARGURA_MAPA,
     maxWidth: "100%",
     alignItems: "center",
     gap: 8
@@ -399,7 +391,7 @@ const estilos = StyleSheet.create({
 
   textoVista: {
     color: "#718696",
-    fontSize: 12
+    fontSize: 13
   },
 
   textoVistaSelecionado: {
@@ -409,8 +401,8 @@ const estilos = StyleSheet.create({
 
   areaMapa: {
     position: "relative",
-    width: 180,
-    height: 300
+    width: LARGURA_MAPA,
+    height: ALTURA_MAPA
   },
 
   camadaRegioes: {
@@ -455,7 +447,7 @@ const estilos = StyleSheet.create({
 
   textoBotaoDesenhar: {
     color: "#0C716B",
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: "bold"
   },
 
@@ -466,23 +458,7 @@ const estilos = StyleSheet.create({
 
   textoBotaoLimpar: {
     color: "#718696",
-    fontSize: 11
-  },
-
-  selecionadas: {
-    width: "100%",
-    gap: 4
-  },
-
-  rotuloSelecionadas: {
-    color: "#203449",
-    fontSize: 11,
-    fontWeight: "bold"
-  },
-
-  textoSelecionada: {
-    color: "#D95A5A",
-    fontSize: 11,
-    lineHeight: 16
+    fontSize: 12
   }
+
 });
