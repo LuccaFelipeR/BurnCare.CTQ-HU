@@ -1,11 +1,19 @@
 import { useState } from "react";
 import { View, Text, TextInput, Pressable, StyleSheet } from "react-native";
-import { ACOES, dataHoje, mascaraData, validarAcao } from "../../data/acompanhamentoPedidos";
+import {
+  ACOES,
+  ATOR,
+  campoVisivel,
+  dataHoje,
+  mascaraData,
+  validarAcao
+} from "../../data/acompanhamentoPedidos";
 
-// Formulário da próxima etapa do pedido (fornecedor, recebimento, prova, ajuste ou entrega).
-// O componente pai deve usar key={pedido.id + pedido.status} para limpar o formulário
-// sempre que o pedido ou o status mudar.
-export default function PainelAcao({ pedido, onConfirmar }) {
+// Formulário da próxima etapa do pedido.
+// ator = "CTQ" ou "FORNECEDOR": cada um só registra as próprias etapas.
+// O componente pai deve usar key={pedido.id + pedido.status + historico.length}
+// para limpar o formulário quando o pedido mudar.
+export default function PainelAcao({ pedido, ator, onConfirmar }) {
   const acao = ACOES[pedido.status];
 
   const [dados, setDados] = useState(() => {
@@ -19,10 +27,26 @@ export default function PainelAcao({ pedido, onConfirmar }) {
 
   if (!acao) {
     return (
-      <View style={[estilos.painel, estilos.painelEncerrado]}>
+      <View style={[estilos.painel, estilos.painelNeutro]}>
         <Text style={estilos.titulo}>Pedido encerrado</Text>
         <Text style={estilos.descricao}>
           A malha já foi entregue. Para uma nova malha, abra um novo pedido.
+        </Text>
+      </View>
+    );
+  }
+
+  // Etapa de responsabilidade do outro lado (CTQ x fornecedor)
+  if (acao.ator !== ator) {
+    return (
+      <View style={[estilos.painel, estilos.painelNeutro]}>
+        <Text style={estilos.titulo}>
+          {acao.ator === ATOR.FORNECEDOR ? "Aguardando o fornecedor" : "Aguardando o CTQ"}
+        </Text>
+        <Text style={estilos.descricao}>
+          {acao.ator === ATOR.FORNECEDOR
+            ? `${acao.aguardando} Esta etapa é registrada no Portal do fornecedor.`
+            : "A próxima etapa é registrada pela equipe do CTQ."}
         </Text>
       </View>
     );
@@ -33,17 +57,12 @@ export default function PainelAcao({ pedido, onConfirmar }) {
   }
 
   function confirmar() {
-    const encontrados = validarAcao(pedido, dados);
+    const encontrados = validarAcao(pedido, dados, ator);
     setErros(encontrados);
-    if (encontrados.length === 0) {
-      onConfirmar(dados);
-    }
+    if (encontrados.length === 0) onConfirmar(dados);
   }
 
-  // A descrição do ajuste só aparece se o resultado da prova for "Precisa de ajuste"
-  const campos = acao.campos.filter(
-    (campo) => campo.nome !== "descricaoAjuste" || dados.resultado === "AJUSTE"
-  );
+  const campos = acao.campos.filter((campo) => campoVisivel(campo, dados));
 
   return (
     <View style={estilos.painel}>
@@ -54,9 +73,7 @@ export default function PainelAcao({ pedido, onConfirmar }) {
         <View key={campo.nome} style={estilos.campo}>
           <Text style={estilos.rotulo}>
             {campo.rotulo}
-            {(campo.obrigatorio || campo.nome === "descricaoAjuste") && (
-              <Text style={estilos.obrigatorio}> *</Text>
-            )}
+            {campo.obrigatorio && <Text style={estilos.obrigatorio}> *</Text>}
           </Text>
 
           {campo.tipo === "opcoes" ? (
@@ -66,10 +83,14 @@ export default function PainelAcao({ pedido, onConfirmar }) {
                 return (
                   <Pressable
                     key={opcao.valor}
-                    onPress={() => alterar(campo.nome, opcao.valor)}
+                    // Com uma única opção, clicar de novo desmarca (ex.: recibo assinado)
+                    onPress={() =>
+                      alterar(campo.nome, ativa && campo.opcoes.length === 1 ? "" : opcao.valor)
+                    }
                     style={[estilos.opcao, ativa && estilos.opcaoAtiva]}
                   >
                     <Text style={[estilos.textoOpcao, ativa && estilos.textoOpcaoAtiva]}>
+                      {campo.opcoes.length === 1 ? (ativa ? "☑ " : "☐ ") : ""}
                       {opcao.rotulo}
                     </Text>
                   </Pressable>
@@ -118,7 +139,7 @@ const estilos = StyleSheet.create({
     gap: 4
   },
 
-  painelEncerrado: {
+  painelNeutro: {
     backgroundColor: "#F4F8FA"
   },
 
@@ -131,7 +152,8 @@ const estilos = StyleSheet.create({
   descricao: {
     fontSize: 13,
     color: "#657888",
-    marginBottom: 8
+    marginBottom: 8,
+    lineHeight: 19
   },
 
   campo: {

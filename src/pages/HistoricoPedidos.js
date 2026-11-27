@@ -1,6 +1,10 @@
-// Histórico de Pedidos — acompanhamento de fornecedor, prova, ajustes e entrega.
+// Histórico de Pedidos — frente 6: acompanhamento, fornecedor, prova, ajustes e entrega.
 // Responsável: Matheus Albertini
 // Dados FICTÍCIOS e sem persistência (as alterações somem ao recarregar a página).
+//
+// A tela tem duas visões sobre os MESMOS pedidos:
+//  - Equipe CTQ: histórico completo, recebimento/conferência, prova, ajustes e entrega
+//  - Portal do fornecedor: só dados de confecção (sem identificação do paciente)
 
 import { useState } from "react";
 import {
@@ -16,7 +20,10 @@ import {
 import StatusBadge from "../components/acompanhamento/StatusBadge";
 import LinhaDoTempo from "../components/acompanhamento/LinhaDoTempo";
 import PainelAcao from "../components/acompanhamento/PainelAcao";
+import PortalFornecedor from "../components/acompanhamento/PortalFornecedor";
+import ReciboEntrega from "../components/acompanhamento/ReciboEntrega";
 import {
+  ATOR,
   FILTROS,
   PEDIDOS_FICTICIOS,
   aplicarAcao,
@@ -26,6 +33,7 @@ import {
 
 export default function HistoricoPedidos() {
   const [pedidos, setPedidos] = useState(PEDIDOS_FICTICIOS);
+  const [visao, setVisao] = useState(ATOR.CTQ);
   const [filtro, setFiltro] = useState("TODOS");
   const [busca, setBusca] = useState("");
   const [idSelecionado, setIdSelecionado] = useState(null);
@@ -38,10 +46,13 @@ export default function HistoricoPedidos() {
   const lista = filtrarPedidos(pedidos, filtro, busca);
   const selecionado = pedidos.find((p) => p.id === idSelecionado) || null;
 
-  function registrar(dados) {
-    setPedidos((anteriores) =>
-      anteriores.map((p) => (p.id === idSelecionado ? aplicarAcao(p, dados) : p))
-    );
+  // Usado pelas duas visões
+  function registrarNoPedido(id, dados) {
+    setPedidos((anteriores) => anteriores.map((p) => (p.id === id ? aplicarAcao(p, dados) : p)));
+  }
+
+  function registrarCTQ(dados) {
+    registrarNoPedido(idSelecionado, dados);
     setMensagem("Registro salvo (apenas nesta sessão — dados fictícios).");
   }
 
@@ -50,7 +61,7 @@ export default function HistoricoPedidos() {
     setMensagem("");
   }
 
-  // ---------------- Lista ----------------
+  // ---------------- Lista (CTQ) ----------------
   const blocoLista = (
     <View style={[estilos.coluna, duasColunas && estilos.colunaLista]}>
       <TextInput
@@ -90,7 +101,7 @@ export default function HistoricoPedidos() {
             <Pressable
               key={pedido.id}
               onPress={() => selecionar(pedido.id)}
-              style={[estilos.cartao, estilos.itemLista, ativo && estilos.itemAtivo]}
+              style={[estilos.cartao, ativo && estilos.itemAtivo]}
             >
               <View style={estilos.linhaTopo}>
                 <Text style={estilos.idPedido}>{pedido.id}</Text>
@@ -111,7 +122,7 @@ export default function HistoricoPedidos() {
     </View>
   );
 
-  // ---------------- Detalhe ----------------
+  // ---------------- Detalhe (CTQ) ----------------
   const blocoDetalhe = selecionado ? (
     <View style={[estilos.coluna, duasColunas && estilos.colunaDetalhe]}>
       {!duasColunas && (
@@ -143,22 +154,35 @@ export default function HistoricoPedidos() {
         </View>
       )}
 
-      <PainelAcao
-        key={`${selecionado.id}-${selecionado.status}-${selecionado.historico.length}`}
-        pedido={selecionado}
-        onConfirmar={registrar}
-      />
+      {selecionado.entrega ? (
+        <ReciboEntrega pedido={selecionado} />
+      ) : (
+        <PainelAcao
+          key={`${selecionado.id}-${selecionado.status}-${selecionado.historico.length}`}
+          pedido={selecionado}
+          ator={ATOR.CTQ}
+          onConfirmar={registrarCTQ}
+        />
+      )}
 
       {selecionado.ajustes.length > 0 && (
         <View style={estilos.cartao}>
-          <Text style={estilos.secao}>Ajustes</Text>
+          <Text style={estilos.secao}>Ajustes (mesmo pedido original)</Text>
           {selecionado.ajustes.map((ajuste) => (
             <View key={ajuste.numero} style={estilos.ajuste}>
-              <Text style={estilos.cartaoTitulo}>Ajuste nº {ajuste.numero}</Text>
+              <Text style={estilos.cartaoTitulo}>
+                Ajuste nº {ajuste.numero} · origem: {ajuste.origem}
+              </Text>
               <Text style={estilos.texto}>{ajuste.descricao}</Text>
+              {ajuste.novasMedidas ? (
+                <Text style={estilos.texto}>Novas medidas: {ajuste.novasMedidas}</Text>
+              ) : null}
               <Text style={estilos.textoPequeno}>
-                Solicitado em {ajuste.dataSolicitacao} ·{" "}
-                {ajuste.dataRetorno ? `retornou em ${ajuste.dataRetorno}` : "aguardando retorno"}
+                Solicitado em {ajuste.dataSolicitacao}
+                {ajuste.envioFornecedor
+                  ? ` · devolvido ao fornecedor em ${ajuste.envioFornecedor.data} (rastreio ${ajuste.envioFornecedor.rastreio})`
+                  : " · aguardando logística reversa"}
+                {ajuste.dataRetorno ? ` · retornou em ${ajuste.dataRetorno}` : ""}
               </Text>
             </View>
           ))}
@@ -177,7 +201,7 @@ export default function HistoricoPedidos() {
           <Text style={estilos.cartaoTitulo}>Selecione um pedido</Text>
           <Text style={estilos.texto}>
             Clique em um pedido da lista para ver o histórico e registrar
-            fornecedor, prova, ajustes ou entrega.
+            recebimento, conferência, prova, ajustes ou entrega.
           </Text>
         </View>
       </View>
@@ -195,11 +219,35 @@ export default function HistoricoPedidos() {
         Acompanhe fornecedor, prova, ajustes e entrega das malhas compressivas.
       </Text>
 
-      <View style={[estilos.area, duasColunas && estilos.areaDuasColunas]}>
-        {/* Em telas menores, mostra a lista OU o detalhe */}
-        {(duasColunas || !selecionado) && blocoLista}
-        {blocoDetalhe}
+      {/* Alternância entre as visões */}
+      <View style={estilos.abas}>
+        <Pressable
+          onPress={() => setVisao(ATOR.CTQ)}
+          style={[estilos.aba, visao === ATOR.CTQ && estilos.abaAtiva]}
+        >
+          <Text style={[estilos.textoAba, visao === ATOR.CTQ && estilos.textoAbaAtiva]}>
+            Equipe CTQ
+          </Text>
+        </Pressable>
+        <Pressable
+          onPress={() => setVisao(ATOR.FORNECEDOR)}
+          style={[estilos.aba, visao === ATOR.FORNECEDOR && estilos.abaAtiva]}
+        >
+          <Text style={[estilos.textoAba, visao === ATOR.FORNECEDOR && estilos.textoAbaAtiva]}>
+            Portal do fornecedor
+          </Text>
+        </Pressable>
       </View>
+
+      {visao === ATOR.CTQ ? (
+        <View style={[estilos.area, duasColunas && estilos.areaDuasColunas]}>
+          {/* Em telas menores, mostra a lista OU o detalhe */}
+          {(duasColunas || !selecionado) && blocoLista}
+          {blocoDetalhe}
+        </View>
+      ) : (
+        <PortalFornecedor pedidos={pedidos} onRegistrar={registrarNoPedido} />
+      )}
 
       <Text style={estilos.aviso}>
         Ambiente demonstrativo — dados fictícios, sem armazenamento.
@@ -218,51 +266,31 @@ function Info({ rotulo, valor }) {
 }
 
 const estilos = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F4F8FA"
-  },
+  container: { flex: 1, backgroundColor: "#F4F8FA" },
+  conteudo: { padding: 16, gap: 6 },
 
-  conteudo: {
-    padding: 16,
-    gap: 6
-  },
+  titulo: { fontSize: 27, fontWeight: "bold", color: "#19384C" },
+  descricao: { fontSize: 14, color: "#657888", marginBottom: 6 },
 
-  titulo: {
-    fontSize: 27,
-    fontWeight: "bold",
-    color: "#19384C"
-  },
-
-  descricao: {
-    fontSize: 14,
-    color: "#657888",
+  abas: {
+    flexDirection: "row",
+    alignSelf: "flex-start",
+    backgroundColor: "#DDE8EE",
+    borderRadius: 10,
+    padding: 4,
+    gap: 4,
     marginBottom: 10
   },
+  aba: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 8 },
+  abaAtiva: { backgroundColor: "#FFFFFF" },
+  textoAba: { fontSize: 13, fontWeight: "bold", color: "#657888" },
+  textoAbaAtiva: { color: "#19384C" },
 
-  area: {
-    gap: 16
-  },
-
-  areaDuasColunas: {
-    flexDirection: "row",
-    alignItems: "flex-start"
-  },
-
-  coluna: {
-    gap: 12,
-    minWidth: 0
-  },
-
-  colunaLista: {
-    flexBasis: 360,
-    flexGrow: 0,
-    flexShrink: 0
-  },
-
-  colunaDetalhe: {
-    flex: 1
-  },
+  area: { gap: 16 },
+  areaDuasColunas: { flexDirection: "row", alignItems: "flex-start" },
+  coluna: { gap: 12, minWidth: 0 },
+  colunaLista: { flexBasis: 360, flexGrow: 0, flexShrink: 0 },
+  colunaDetalhe: { flex: 1 },
 
   busca: {
     borderWidth: 1,
@@ -275,12 +303,7 @@ const estilos = StyleSheet.create({
     backgroundColor: "#FFFFFF"
   },
 
-  filtros: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8
-  },
-
+  filtros: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   chip: {
     borderWidth: 1,
     borderColor: "#C9D7E0",
@@ -289,21 +312,9 @@ const estilos = StyleSheet.create({
     paddingVertical: 7,
     paddingHorizontal: 12
   },
-
-  chipAtivo: {
-    backgroundColor: "#19384C",
-    borderColor: "#19384C"
-  },
-
-  textoChip: {
-    fontSize: 12,
-    fontWeight: "bold",
-    color: "#3E5566"
-  },
-
-  textoChipAtivo: {
-    color: "#FFFFFF"
-  },
+  chipAtivo: { backgroundColor: "#19384C", borderColor: "#19384C" },
+  textoChip: { fontSize: 12, fontWeight: "bold", color: "#3E5566" },
+  textoChipAtivo: { color: "#FFFFFF" },
 
   cartao: {
     backgroundColor: "#FFFFFF",
@@ -313,15 +324,7 @@ const estilos = StyleSheet.create({
     padding: 16,
     gap: 4
   },
-
-  itemLista: {
-    gap: 4
-  },
-
-  itemAtivo: {
-    borderColor: "#0C716B",
-    borderWidth: 2
-  },
+  itemAtivo: { borderColor: "#0C716B", borderWidth: 2 },
 
   linhaTopo: {
     flexDirection: "row",
@@ -330,67 +333,18 @@ const estilos = StyleSheet.create({
     flexWrap: "wrap",
     gap: 8
   },
+  idPedido: { fontSize: 12, fontWeight: "bold", color: "#718696" },
+  cartaoTitulo: { fontSize: 15, fontWeight: "bold", color: "#19384C" },
+  detalheTitulo: { fontSize: 20, fontWeight: "bold", color: "#19384C", marginTop: 6 },
+  texto: { fontSize: 13, color: "#3E5566", lineHeight: 19 },
+  textoPequeno: { fontSize: 12, color: "#718696" },
 
-  idPedido: {
-    fontSize: 12,
-    fontWeight: "bold",
-    color: "#718696"
-  },
+  grade: { flexDirection: "row", flexWrap: "wrap", gap: 12, marginTop: 10 },
+  info: { flexBasis: 160, flexGrow: 1, minWidth: 0 },
+  infoRotulo: { fontSize: 11, color: "#718696" },
+  infoValor: { fontSize: 14, color: "#19384C", fontWeight: "bold" },
 
-  cartaoTitulo: {
-    fontSize: 15,
-    fontWeight: "bold",
-    color: "#19384C"
-  },
-
-  detalheTitulo: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#19384C",
-    marginTop: 6
-  },
-
-  texto: {
-    fontSize: 13,
-    color: "#3E5566",
-    lineHeight: 19
-  },
-
-  textoPequeno: {
-    fontSize: 12,
-    color: "#718696"
-  },
-
-  grade: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
-    marginTop: 10
-  },
-
-  info: {
-    flexBasis: 160,
-    flexGrow: 1,
-    minWidth: 0
-  },
-
-  infoRotulo: {
-    fontSize: 11,
-    color: "#718696"
-  },
-
-  infoValor: {
-    fontSize: 14,
-    color: "#19384C",
-    fontWeight: "bold"
-  },
-
-  secao: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#19384C",
-    marginBottom: 10
-  },
+  secao: { fontSize: 16, fontWeight: "bold", color: "#19384C", marginBottom: 10 },
 
   ajuste: {
     borderLeftWidth: 3,
@@ -400,31 +354,11 @@ const estilos = StyleSheet.create({
     gap: 2
   },
 
-  voltar: {
-    alignSelf: "flex-start",
-    paddingVertical: 6
-  },
+  voltar: { alignSelf: "flex-start", paddingVertical: 6 },
+  textoVoltar: { color: "#0C716B", fontWeight: "bold" },
 
-  textoVoltar: {
-    color: "#0C716B",
-    fontWeight: "bold"
-  },
+  sucesso: { backgroundColor: "#DDF3E9", borderRadius: 8, padding: 12 },
+  textoSucesso: { color: "#0C716B", fontWeight: "bold", fontSize: 13 },
 
-  sucesso: {
-    backgroundColor: "#DDF3E9",
-    borderRadius: 8,
-    padding: 12
-  },
-
-  textoSucesso: {
-    color: "#0C716B",
-    fontWeight: "bold",
-    fontSize: 13
-  },
-
-  aviso: {
-    color: "#718696",
-    fontSize: 12,
-    marginTop: 15
-  }
+  aviso: { color: "#718696", fontSize: 12, marginTop: 15 }
 });
