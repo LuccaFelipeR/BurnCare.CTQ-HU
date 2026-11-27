@@ -5,7 +5,8 @@ export default function Sidebar({ paginaAtual, onNavegar, telaPequena }) {
   const menus = [
     { nome: "VisaoGeral", titulo: "Visão geral" },
     { nome: "NovoPedido", titulo: "Novo pedido" },
-    { nome: "Historico", titulo: "Histórico" }
+    { nome: "Historico", titulo: "Histórico" },
+    { nome: "Fornecedores", titulo: "Fornecedores" }
   ];
 
   return (

@@ -1,0 +1,9 @@
+# Configuração mínima do Supabase CLI para o BurnCare.
+# Apenas a Edge Function de e-mail é usada por enquanto.
+
+[functions.enviar-pedido-fornecedor]
+# Escrita em JavaScript (index.js) para o app Expo não exigir TypeScript.
+entrypoint = "./functions/enviar-pedido-fornecedor/index.js"
+# O app chama a função com a chave pública (anon/publishable), sem login de usuário.
+# A proteção fica na própria função: lista de e-mails permitidos + origens permitidas.
+verify_jwt = false

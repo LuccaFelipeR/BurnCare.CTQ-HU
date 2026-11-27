@@ -12,10 +12,12 @@ import {
 } from "react-native";
 
 import IdentificacaoForm from "../components/forms/IdentificacaoForm";
-import MapaCorporal from "../components/MapaCorporal";
+import MapaCorporal, { IDS_REGIOES_MAPA } from "../components/MapaCorporal";
 import MedidasAnexos from "./MedidasEAnexos";
 import { usePedidos } from "../context/PedidosContext";
-import { FORNECEDORES } from "../data/acompanhamentoPedidos";
+import { useFornecedores } from "../context/FornecedoresContext";
+import { dataHoje } from "../data/acompanhamentoPedidos";
+import { enviarEmailNovoPedido, emailIntegracaoAtiva } from "../services/emailFornecedor";
 import { validarMedidasProdutos } from "../data/gabaritosMedidas";
 import { novaIdentificacao, novoDadosMedidas, validarIdentificacao, validarSelecao, criarPedidoDemonstrativo } from "../data/novoPedido";
 
@@ -136,7 +138,24 @@ const catalogoProdutos = [
   }
 ];
 
+// Produtos disponíveis para cada região do mapa corporal (id da região → ids do catálogo).
+// O mesmo id vale para a frente e para as costas; o lado é sempre o do paciente.
+// Toda região clicável do mapa PRECISA ter pelo menos um produto aqui
+// (a verificação logo abaixo avisa no console durante o desenvolvimento).
 const produtosPorRegiao = {
+  quadril: [
+    "meia-calca"
+  ],
+  "antebraco-direito": [
+    "meio-cano-braco-direito",
+    "luva-ombro-direita",
+    "torax-com-mangas"
+  ],
+  "antebraco-esquerdo": [
+    "meio-cano-braco-esquerdo",
+    "luva-ombro-esquerda",
+    "torax-com-mangas"
+  ],
   "perna-direita": [
     "meia-joelho-direita",
     "meio-cano-perna-direita",
@@ -153,11 +172,13 @@ const produtosPorRegiao = {
   ],
   "braco-direito": [
     "meio-cano-braco-direito",
-    "luva-ombro-direita"
+    "luva-ombro-direita",
+    "torax-com-mangas"
   ],
   "braco-esquerdo": [
     "meio-cano-braco-esquerdo",
-    "luva-ombro-esquerda"
+    "luva-ombro-esquerda",
+    "torax-com-mangas"
   ],
   tronco: [
     "torax-com-mangas",
@@ -177,8 +198,19 @@ const produtosPorRegiao = {
   ]
 };
 
+if (typeof __DEV__ !== "undefined" && __DEV__) {
+  const idsCatalogo = new Set(catalogoProdutos.map((produto) => produto.id));
+  const semProduto = IDS_REGIOES_MAPA.filter((id) => !produtosPorRegiao[id]?.length);
+  const inexistentes = Object.values(produtosPorRegiao).flat().filter((id) => !idsCatalogo.has(id));
+  if (semProduto.length) console.warn("[MapaCorporal] Regiões sem produto associado:", semProduto);
+  if (inexistentes.length) console.warn("[MapaCorporal] Produtos inexistentes no catálogo:", inexistentes);
+}
+
 export default function NovoPedido({ navigation }) {
   const { pedidos, setPedidos } = usePedidos();
+  const { fornecedores } = useFornecedores();
+  const fornecedoresAtivos = fornecedores.filter((f) => f.ativo);
+  const [envioEmail, setEnvioEmail] = useState(null);
   const [formData, setFormData] = useState(novaIdentificacao);
   const [dadosMedidas, setDadosMedidas] = useState(novoDadosMedidas);
   const [fornecedor, setFornecedor] = useState("");
@@ -245,19 +277,34 @@ export default function NovoPedido({ navigation }) {
     if (!pendencias.length) setEtapaAtual(destino);
   }
 
-  function confirmarPedido() {
+  async function confirmarPedido() {
     if (confirmando.current) return;
     confirmando.current = true;
+    let pedido;
     try {
-      const pedido = criarPedidoDemonstrativo({ formData, regioes: regioesSelecionadas,
-        produtos: produtosEscolhidos, dadosMedidas, fornecedor, justificativa: justificativaRegiao }, pedidos);
-      setPedidos((anteriores) => [pedido, ...anteriores]);
-      setPedidoCriado(pedido.id);
-      setErros([]);
+      pedido = criarPedidoDemonstrativo({ formData, regioes: regioesSelecionadas,
+        produtos: produtosEscolhidos, dadosMedidas, fornecedor, justificativa: justificativaRegiao,
+        fornecedoresDisponiveis: fornecedoresAtivos.map((f) => f.nome) }, pedidos);
     } catch (erro) {
       setErros([erro.message]);
       confirmando.current = false;
+      return;
     }
+    setPedidos((anteriores) => [pedido, ...anteriores]);
+    setPedidoCriado(pedido.id);
+    setErros([]);
+
+    // Aviso por e-mail ao fornecedor. Uma falha aqui NÃO desfaz o pedido:
+    // o resultado fica registrado na linha do tempo do pedido.
+    setEnvioEmail({ status: "enviando", mensagem: "Enviando e-mail ao fornecedor…" });
+    const dadosFornecedor = fornecedores.find((f) => f.nome === pedido.fornecedor);
+    const resultado = await enviarEmailNovoPedido(pedido, dadosFornecedor);
+    setEnvioEmail(resultado);
+    setPedidos((anteriores) => anteriores.map((p) => p.id !== pedido.id ? p : {
+      ...p,
+      historico: [...p.historico, { data: dataHoje(), status: p.status, descricao: resultado.mensagem,
+        responsavel: "Sistema (e-mail)" }]
+    }));
   }
 
   function iniciarNovo() {
@@ -271,6 +318,7 @@ export default function NovoPedido({ navigation }) {
     setErros([]);
     setEtapaAtual(0);
     setPedidoCriado(null);
+    setEnvioEmail(null);
     confirmando.current = false;
   }
 
@@ -286,7 +334,11 @@ export default function NovoPedido({ navigation }) {
       <View style={estilos.formulario}>
         <Text style={estilos.tituloFormulario}>Pedido demonstrativo registrado</Text>
         <Text style={estilos.rotuloCampo}>{pedidoCriado}</Text>
-        <Text style={estilos.descricao}>O pedido está disponível no Histórico e no Portal do fornecedor nesta sessão. Não houve envio real, nem armazenamento permanente.</Text>
+        <Text style={estilos.descricao}>O pedido está disponível no Histórico e no Portal do fornecedor nesta sessão, sem armazenamento permanente.</Text>
+        {envioEmail && <View accessibilityRole="alert" style={[estilos.alertaSelecao, { marginTop: 12 },
+          envioEmail.status === "enviado" && { backgroundColor: "#DDF3E9" }]}>
+          <Text style={[estilos.textoAlertaSelecao, envioEmail.status === "enviado" && { color: "#0C716B" }]}>{envioEmail.mensagem}</Text>
+        </View>}
         <View style={estilos.navegacaoEtapas}>
           <Pressable style={estilos.botaoVoltar} onPress={iniciarNovo}><Text style={estilos.textoVoltar}>Novo pedido</Text></Pressable>
           <Pressable style={estilos.botaoContinuar} onPress={() => navigation.navigate("Historico", { pedidoId: pedidoCriado })}><Text style={estilos.textoContinuar}>Ver histórico →</Text></Pressable>
@@ -535,7 +587,9 @@ export default function NovoPedido({ navigation }) {
 
           {etapaAtual === 3 && (
             <View style={estilos.etapaPendente}>
-              <View style={estilos.alertaSelecao}><Text style={estilos.textoAlertaSelecao}>SIMULAÇÃO — SEM DADOS REAIS. Registro em memória, sem envio externo.</Text></View>
+              <View style={estilos.alertaSelecao}><Text style={estilos.textoAlertaSelecao}>{emailIntegracaoAtiva()
+                ? "SEM DADOS REAIS. Ao confirmar, o fornecedor escolhido recebe um e-mail com produtos e medidas (sem nome ou prontuário do paciente)."
+                : "SIMULAÇÃO — SEM DADOS REAIS. Registro em memória; envio de e-mail desativado."}</Text></View>
               <Resumo titulo="Paciente e prescrição" onEditar={() => irParaEtapa(0)}>
                 {[["Nome", formData.nome], ["Prontuário", formData.prontuario], ["Data de atendimento", formData.dataAtendimento],
                   ["Idade", formData.idade], ["Cidade", formData.cidade], ["Endereço", formData.endereco], ["Telefone", formData.telefone],
@@ -557,11 +611,16 @@ export default function NovoPedido({ navigation }) {
                 <Text style={estilos.descricaoEtapa}>Anexos fictícios: {dadosMedidas.fotos.length}</Text>
                 <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>{dadosMedidas.fotos.map((foto, i) => <Image key={`${foto.uri}-${i}`} source={{ uri: foto.uri }} style={{ width: 64, height: 64, borderRadius: 6 }} />)}</View>
               </Resumo>
-              <Text style={estilos.rotuloCampo}>Fornecedor demonstrativo *</Text>
+              <Text style={estilos.rotuloCampo}>Fornecedor *</Text>
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                {FORNECEDORES.map((nome) => <Pressable key={nome} accessibilityRole="radio" accessibilityState={{ checked: fornecedor === nome }} onPress={() => { setFornecedor(nome); setErros([]); }}
-                  style={[estilos.botaoVoltar, fornecedor === nome && estilos.itemProdutoMarcado]}><Text style={estilos.rotuloCampo}>{nome}</Text></Pressable>)}
+                {fornecedoresAtivos.map(({ id, nome, email }) => <Pressable key={id} accessibilityRole="radio" accessibilityState={{ checked: fornecedor === nome }} onPress={() => { setFornecedor(nome); setErros([]); }}
+                  style={[estilos.botaoVoltar, { alignItems: "flex-start" }, fornecedor === nome && estilos.itemProdutoMarcado]}>
+                  <Text style={estilos.rotuloCampo}>{nome}</Text>
+                  <Text style={estilos.detalhesProduto}>{email}</Text>
+                </Pressable>)}
+                {fornecedoresAtivos.length === 0 && <Text style={estilos.descricaoEtapa}>Nenhum fornecedor ativo. Cadastre um na tela Fornecedores.</Text>}
               </View>
+              <Pressable onPress={() => navigation.navigate("Fornecedores")}><Text style={estilos.textoVoltar}>Gerenciar fornecedores →</Text></Pressable>
               <View style={estilos.navegacaoEtapas}>
                 <Pressable style={estilos.botaoVoltar} onPress={() => irParaEtapa(2)}><Text style={estilos.textoVoltar}>Voltar</Text></Pressable>
                 <Pressable style={estilos.botaoContinuar} onPress={confirmarPedido}><Text style={estilos.textoContinuar}>Confirmar simulação</Text></Pressable>

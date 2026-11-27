@@ -1,0 +1,48 @@
+# Publica a versão web do BurnCare no GitHub Pages a cada push na main.
+# Ativação e domínio próprio: docs/INTEGRACAO_EMAIL.md (seção "Publicar no GitHub Pages").
+name: Publicar no GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # Valores vêm de Settings > Secrets and variables > Actions > Variables.
+      # São públicos por natureza (ficam no JavaScript do site).
+      - run: npx expo export --platform web
+        env:
+          EXPO_PUBLIC_EMAIL_FORNECEDOR_ATIVO: ${{ vars.EXPO_PUBLIC_EMAIL_FORNECEDOR_ATIVO }}
+          EXPO_PUBLIC_SUPABASE_URL: ${{ vars.EXPO_PUBLIC_SUPABASE_URL }}
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
