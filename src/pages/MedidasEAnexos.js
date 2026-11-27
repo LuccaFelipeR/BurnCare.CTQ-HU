@@ -67,10 +67,10 @@ export default function MedidasAnexos({ produtos = [], dados, onAlterar, onVolta
         <Text style={styles.infoTitulo}>{produto.descricao}</Text>
         <Text style={styles.infoTexto}>{gabarito?.name ?? "Gabarito pendente"} · unidade: centímetros (cm).</Text>
       </View>
-      {gabarito?.variants?.length > 0 && <View>
+      {gabarito && <View>
         <Text style={styles.label}>Modelo / acabamento (se aplicável)</Text>
         <View style={styles.modelos} accessibilityRole="radiogroup">
-          {["", ...gabarito.variants].map((modelo) => (
+          {["", "Não aplicável", ...(gabarito.variants ?? [])].map((modelo) => (
             <Pressable key={modelo || "sem-modelo"} accessibilityRole="radio" accessibilityState={{ checked: ficha.modelo === modelo }}
               onPress={() => alterarFicha((atual) => ({ ...atual, modelo }))}
               style={[styles.opcaoModelo, ficha.modelo === modelo && styles.opcaoModeloAtiva]}>

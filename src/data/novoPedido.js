@@ -1,5 +1,6 @@
 // Contrato demonstrativo entre Novo Pedido, Histórico e Portal do fornecedor.
 import { STATUS, FORNECEDORES, dataHoje } from "./acompanhamentoPedidos";
+import { FORNECEDORES_DEMO } from "./fornecedores";
 import { gabaritoDoProduto, medidaNumerica, validarMedidasProdutos } from "./gabaritosMedidas";
 
 export const novoDadosMedidas = () => ({ fichas: {}, fotos: [], termoConferido: false });
@@ -20,10 +21,10 @@ export function validarSelecao(regioes, produtos) {
   return erros;
 }
 
-export function validarPedido({ formData, regioes, produtos, dadosMedidas, fornecedor }) {
+export function validarPedido({ formData, regioes, produtos, dadosMedidas, fornecedor, fornecedores = [...FORNECEDORES_DEMO, ...FORNECEDORES.map((nome) => ({ nome }))] }) {
   return [...validarIdentificacao(formData), ...validarSelecao(regioes, produtos),
     ...validarMedidasProdutos(produtos, dadosMedidas),
-    ...(!FORNECEDORES.includes(fornecedor) ? ["Escolha um fornecedor demonstrativo."] : [])];
+    ...(!fornecedores.some((f) => f.nome === fornecedor) ? ["Escolha um fornecedor demonstrativo."] : [])];
 }
 
 export function criarPedidoDemonstrativo(dados, pedidos, hoje = dataHoje()) {

@@ -6,6 +6,7 @@ import Sidebar from "../components/SideBar";
 import Home from "../pages/Home";
 import NovoPedido from "../pages/NovoPedido";
 import HistoricoPedidos from "../pages/HistoricoPedidos";
+import Fornecedores from "../pages/Fornecedores";
 import { PedidosProvider } from "../context/PedidosContext";
 
 const Stack = createNativeStackNavigator();
@@ -63,6 +64,10 @@ function TelaHistorico({ navigation, route }) {
   );
 }
 
+function TelaFornecedores({ navigation }) {
+  return <Layout navigation={navigation} paginaAtual="Fornecedores"><Fornecedores /></Layout>;
+}
+
 // Rotas principais
 export default function RootNavigator() {
   return (
@@ -71,6 +76,7 @@ export default function RootNavigator() {
       <Stack.Screen name="VisaoGeral" component={TelaHome} />
       <Stack.Screen name="NovoPedido" component={TelaNovoPedido} />
       <Stack.Screen name="Historico" component={TelaHistorico} />
+      <Stack.Screen name="Fornecedores" component={TelaFornecedores} />
     </Stack.Navigator>
     </PedidosProvider>
   );

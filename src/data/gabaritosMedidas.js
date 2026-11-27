@@ -182,7 +182,7 @@ export function validarMedidasProdutos(produtos, dados = {}) {
     } else if (preenchidas.length < 2) {
       erros.push(`${produto.descricao}: informe pelo menos duas medidas válidas para a demonstração.`);
     }
-    if (ficha.modelo && !(gabarito.variants ?? []).includes(ficha.modelo)) {
+    if (ficha.modelo && !["Não aplicável", ...(gabarito.variants ?? [])].includes(ficha.modelo)) {
       erros.push(`${produto.descricao}: acabamento não corresponde ao gabarito.`);
     }
   }

@@ -155,6 +155,7 @@ export default function HistoricoPedidos({ route }) {
           <Info rotulo="Região" valor={selecionado.regiao} />
           <Info rotulo="Produto" valor={selecionado.produto} />
           <Info rotulo="Fornecedor" valor={selecionado.fornecedor} />
+          {selecionado.notificacaoEmail && <Info rotulo="Notificação de e-mail" valor={({ aceito: "Aceita pelo serviço de e-mail", desativado: "Não enviada", recusado: "Não enviada / recusada", indeterminado: "Envio não confirmado" })[selecionado.notificacaoEmail] || "Não enviada"} />}
           <Info rotulo="Data do pedido" valor={selecionado.dataPedido} />
         </View>
       </View>

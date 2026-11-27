@@ -1,0 +1,60 @@
+Verificação isolada: TypeScript transpileModule para sintaxe JS/JSX/TS; Node com funções reais do mapeamento, gabaritos e cadastro. Criação de pedido com dependência de acompanhamento simulada; Edge Function executada em VM com APIs Auth/RPC/Resend simuladas. Não foi executado Expo, Deno/Supabase real, SQL remoto, navegador, DNS ou envio real.
+
+PASS frente cabeca
+PASS costas cabeca
+PASS frente tronco
+PASS costas tronco
+PASS frente quadril
+PASS costas quadril
+PASS frente braco-direito
+PASS costas braco-direito
+PASS frente antebraco-direito
+PASS costas antebraco-direito
+PASS frente mao-direita
+PASS costas mao-direita
+PASS frente braco-esquerdo
+PASS costas braco-esquerdo
+PASS frente antebraco-esquerdo
+PASS costas antebraco-esquerdo
+PASS frente mao-esquerda
+PASS costas mao-esquerda
+PASS frente perna-direita
+PASS costas perna-direita
+PASS frente perna-esquerda
+PASS costas perna-esquerda
+PASS lateralidade antebraço esquerdo
+PASS lateralidade antebraço direito
+PASS união frente/costas sem duplicação
+PASS não aplicável em todos os 19 produtos
+PASS modelo inválido continua bloqueado
+PASS fornecedores fictícios sem e-mail presumido
+PASS nome legado preserva vínculo
+PASS cadastro válido
+PASS duplicidade bloqueada
+PASS email inválido bloqueado
+PASS pedido aceita fornecedor novo e bloqueia desconhecido
+SYNTAX OK src/components/SideBar.js
+SYNTAX OK src/components/acompanhamento/PortalFornecedor.js
+SYNTAX OK src/context/PedidosContext.js
+SYNTAX OK src/data/fornecedores.js
+SYNTAX OK src/data/gabaritosMedidas.js
+SYNTAX OK src/data/novoPedido.js
+SYNTAX OK src/data/regioesProdutos.js
+SYNTAX OK src/pages/Fornecedores.js
+SYNTAX OK src/pages/HistoricoPedidos.js
+SYNTAX OK src/pages/Home.js
+SYNTAX OK src/pages/MedidasEAnexos.js
+SYNTAX OK src/pages/NovoPedido.js
+SYNTAX OK src/routes/RootNavigator.js
+SYNTAX OK src/services/emailFornecedor.js
+SYNTAX OK supabase/functions/notificar-fornecedor/index.ts
+PASS email desativado: sem chamadas externas
+PASS sem token: recusado
+PASS origem não autorizada
+PASS usuário não autorizado
+PASS destinatário não autorizado
+PASS campo extra rejeitado
+PASS limite diário bloqueia envio
+PASS envio autorizado usa corpo mínimo e idempotência
+PASS erro do provedor não simula sucesso
+TOTAL 42
