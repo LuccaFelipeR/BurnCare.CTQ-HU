@@ -1,12 +1,10 @@
 import React, { useState } from "react";
-import { Dropdown } from "react-native-element-dropdown";
 import {
   View,
   Text,
   TextInput,
   ScrollView,
   Pressable,
-  Switch,
   StyleSheet,
   useWindowDimensions,
   Alert,
@@ -33,11 +31,18 @@ const MEDIDAS = [
 ];
 
 const OPCOES = [
-    { label: 'Escolher (se aplicável)', value: '1' },
-    { label: 'Fechada', value: '2' },
-    { label: 'Dedo longo sem costura', value: '3' },
-    { label: 'Com dedos abertos', value: '4' },
-    { label: 'Sem dedos', value: '5' },
+    { label: 'Escolher (se aplicável)', value: '' },
+    { label: 'Fechada', value: 'Fechada' },
+    { label: 'Dedo longo sem costura', value: 'Dedo longo sem costura' },
+    { label: 'Com dedos abertos', value: 'Com dedos abertos' },
+    { label: 'Sem dedos', value: 'Sem dedos' },
+];
+
+const ETAPAS = [
+  "Paciente e prescrição",
+  "Região e produto",
+  "Medidas e anexos",
+  "Conferência"
 ];
 
 function nomeMedida(index, nome){
@@ -46,10 +51,12 @@ function nomeMedida(index, nome){
     return `${String.fromCharCode(97 + index - 9)} · ${nome}`;
 }
 
-export default function MedidasAnexos({navigation, OnVoltar, OnContinuar}){
+export default function MedidasAnexos({navigation, OnVoltar, OnContinuar, onVoltar, onContinuar}){
     const { width } = useWindowDimensions();
   const compacto = width < 850;
   const celular = width < 600;
+  const aoVoltar = onVoltar ?? OnVoltar;
+  const aoContinuar = onContinuar ?? OnContinuar;
 
   const [modelo, setModelo] = useState("");
   const [medidas, setMedidas] = useState({});
@@ -75,8 +82,10 @@ export default function MedidasAnexos({navigation, OnVoltar, OnContinuar}){
 
       if (!resultado.canceled) {
         setFotos(resultado.assets || []);
+        setErro("");
       }
     } catch {
+      setErro("Não foi possível selecionar as imagens. Tente novamente.");
       Alert.alert(
         "Não foi possível selecionar as imagens",
         "Tente novamente."
@@ -85,26 +94,42 @@ export default function MedidasAnexos({navigation, OnVoltar, OnContinuar}){
   }
 
   function continuar() {
-    const preenchidas = Object.values(medidas).filter(
-      (valor) => valor.trim() !== ""
+    const preenchidas = Object.entries(medidas).filter(
+      ([, valor]) => String(valor).trim() !== ""
     );
+    const invalidas = preenchidas.filter(([, valor]) => {
+      const numero = Number(String(valor).trim().replace(",", "."));
+      return !Number.isFinite(numero) || numero <= 0;
+    });
 
+    if (invalidas.length > 0) {
+      setErro("As medidas preenchidas devem ser números finitos maiores que zero.");
+      return;
+    }
     if (preenchidas.length < 2) {
-      setErro("Preencha pelo menos duas medidas para continuar.");
+      setErro("Preencha pelo menos duas medidas numéricas maiores que zero.");
+      return;
+    }
+    if (typeof aoContinuar !== "function") {
+      setErro("A etapa de medidas ainda não foi integrada ao Novo Pedido.");
       return;
     }
 
     setErro("");
-
-    onContinuar?.({
+    aoContinuar({
       modelo,
-      medidas,
+      medidas: Object.fromEntries(preenchidas.map(([nome, valor]) => [nome, String(valor).trim().replace(",", ".")])),
       termoConferido,
+      fotos,
       quantidadeFotos: fotos.length,
     });
   }
 
-  const [value, setValue] = useState(null);
+  function voltar() {
+    if (typeof aoVoltar === "function") aoVoltar();
+    else if (navigation?.canGoBack?.()) navigation.goBack();
+    else setErro("A navegação desta etapa ainda não foi integrada ao Novo Pedido.");
+  }
 
   return(
      <View style={styles.app}>
@@ -121,6 +146,7 @@ export default function MedidasAnexos({navigation, OnVoltar, OnContinuar}){
 
         <ScrollView
           style={styles.scrollPrincipal}
+          keyboardShouldPersistTaps="handled"
           contentContainerStyle={[
             styles.conteudo,
             celular && styles.conteudoCelular,
@@ -148,10 +174,7 @@ export default function MedidasAnexos({navigation, OnVoltar, OnContinuar}){
                 compacto && styles.etapasCompactas,
               ]}
             >
-              {[
-                //
-              ].map((nome, index) => {
-                const concluida = index < 2;
+              {ETAPAS.map((nome, index) => {
                 const atual = index === 2;
 
                 return (
@@ -165,18 +188,16 @@ export default function MedidasAnexos({navigation, OnVoltar, OnContinuar}){
                     <View
                       style={[
                         styles.etapaNumero,
-                        (concluida || atual) &&
-                          styles.etapaNumeroAtivo,
+                        atual && styles.etapaNumeroAtivo,
                       ]}
                     >
                       <Text
                         style={[
                           styles.etapaNumeroTexto,
-                          (concluida || atual) &&
-                            styles.etapaNumeroTextoAtivo,
+                          atual && styles.etapaNumeroTextoAtivo,
                         ]}
                       >
-                        {concluida ? "✓" : index + 1}
+                        {index + 1}
                       </Text>
                     </View>
                     <Text
@@ -202,9 +223,8 @@ export default function MedidasAnexos({navigation, OnVoltar, OnContinuar}){
 
               <Text style={styles.tituloSecao}>Medidas e anexos</Text>
               <Text style={styles.descricao}>
-                Os campos abaixo reproduzem os títulos dos sete
-                gabaritos de medidas recebidos. Cada peça possui
-                sua própria ficha.
+                Gabarito demonstrativo de luva. Os demais gabaritos
+                e as regras clínicas ainda dependem de integração e validação.
               </Text>
 
               <View style={styles.abaSelecionada}>
@@ -224,20 +244,25 @@ export default function MedidasAnexos({navigation, OnVoltar, OnContinuar}){
                 </Text>
               </View>
 
-                <Text style={styles.label}>
+              <Text style={styles.label}>
                 Modelo / acabamento (conforme gabarito)
-                </Text>
+              </Text>
 
-                <Dropdown
-                style={styles.dropdown}
-                selectedTextStyle={styles.textoSelecionado}
-                data={OPCOES}
-                labelField="label"
-                valueField="value"
-                placeholder="Selecione o modelo / acabamento"
-                value={value}
-                onChange={(item) => setValue(item.value)}
-                />
+              <View style={styles.modelos} accessibilityRole="radiogroup">
+                {OPCOES.map((opcao) => (
+                  <Pressable
+                    key={opcao.label}
+                    accessibilityRole="radio"
+                    accessibilityState={{ checked: modelo === opcao.value }}
+                    onPress={() => setModelo(opcao.value)}
+                    style={[styles.opcaoModelo, modelo === opcao.value && styles.opcaoModeloAtiva]}
+                  >
+                    <Text style={[styles.opcaoTexto, modelo === opcao.value && styles.opcaoTextoAtivo]}>
+                      {opcao.label}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
               {/* CAMPOS DE MEDIDAS */}
               <View style={styles.listaMedidas}>
                 {MEDIDAS.map((nome, index) => (
@@ -265,7 +290,7 @@ export default function MedidasAnexos({navigation, OnVoltar, OnContinuar}){
 
               <View style={styles.aviso}>
                 <Text style={styles.avisoTexto}>
-                  A demonstração exige duas medidas preenchidas por
+                  A demonstração exige duas medidas válidas por
                   produto; em produção, a equipe do CTQ deverá
                   confirmar todas as medidas obrigatórias por modelo.
                 </Text>
@@ -278,6 +303,8 @@ export default function MedidasAnexos({navigation, OnVoltar, OnContinuar}){
               </Text>
 
               <Pressable
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: termoConferido }}
                 onPress={() => setTermoConferido(!termoConferido)}
                 style={styles.termo}
               >
@@ -294,13 +321,13 @@ export default function MedidasAnexos({navigation, OnVoltar, OnContinuar}){
 
                 <View style={styles.termoTexto}>
                   <Text style={styles.termoTitulo}>
-                    Termo de autorização de imagem conferido
+                    Termo de autorização de imagem conferido (simulação)
                   </Text>
                 </View>
               </Pressable>
 
               <Text style={styles.label}>
-                Fotos da cicatriz
+                Imagens fictícias de demonstração
               </Text>
 
               <Pressable
@@ -316,9 +343,15 @@ export default function MedidasAnexos({navigation, OnVoltar, OnContinuar}){
                     : `${fotos.length} imagem(ns) selecionada(s)`}
                 </Text>
               </Pressable>
+              <Text style={styles.infoTexto}>Não selecione fotografias reais de pacientes.</Text>
+              {fotos.length > 0 && (
+                <Pressable onPress={() => setFotos([])} accessibilityRole="button">
+                  <Text style={styles.textoVoltar}>Remover imagens selecionadas</Text>
+                </Pressable>
+              )}
 
               {erro !== "" && (
-                <Text style={styles.erro}>{erro}</Text>
+                <Text accessibilityRole="alert" style={styles.erro}>{erro}</Text>
               )}
             </View>
           </View>
@@ -331,14 +364,14 @@ export default function MedidasAnexos({navigation, OnVoltar, OnContinuar}){
             ]}
           >
             <Pressable
-              onPress={OnVoltar}
+              onPress={voltar}
               style={styles.botaoVoltar}
             >
               <Text style={styles.textoVoltar}>← Voltar</Text>
             </Pressable>
 
             <Pressable
-              onPress={OnContinuar}
+              onPress={continuar}
               style={styles.botaoContinuar}
             >
               <Text style={styles.textoContinuar}>
@@ -355,10 +388,8 @@ export default function MedidasAnexos({navigation, OnVoltar, OnContinuar}){
 const styles = StyleSheet.create({
     app: {
     flex: 1,
-    minHeight: "100vh",
     flexDirection: "row",
     backgroundColor: CORES.fundo,
-    fontFamily: "Arial, sans-serif",
   },
   principal: {
     flex: 1,
@@ -424,6 +455,7 @@ const styles = StyleSheet.create({
   },
   workspaceCompacto: {
     flexDirection: "column",
+    alignItems: "stretch",
   },
   etapas: {
     width: 174,
@@ -607,7 +639,6 @@ const styles = StyleSheet.create({
     paddingRight: 32,
     color: "#173650",
     fontSize: 13,
-    outlineStyle: "none",
   },
   unidade: {
     position: "absolute",
@@ -735,18 +766,5 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 13,
     fontWeight: "bold",
-  },
-  dropdown: {
-    height: 40,
-    borderColor: "#D8E5EC",
-    borderWidth: 1.5,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-  },
-  textoSelecionado: {
-    fontSize: 12
-  },
-  label: {
-    fontSize: 12, fontWeight: 'bold', marginBottom: 8
   }
 });
