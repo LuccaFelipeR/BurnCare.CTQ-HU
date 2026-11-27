@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   View,
   Text,
@@ -7,11 +7,17 @@ import {
   StyleSheet,
   ScrollView,
   TextInput,
+  Image,
   useWindowDimensions
 } from "react-native";
 
 import IdentificacaoForm from "../components/forms/IdentificacaoForm";
 import MapaCorporal from "../components/MapaCorporal";
+import MedidasAnexos from "./MedidasEAnexos";
+import { usePedidos } from "../context/PedidosContext";
+import { FORNECEDORES } from "../data/acompanhamentoPedidos";
+import { validarMedidasProdutos } from "../data/gabaritosMedidas";
+import { novaIdentificacao, novoDadosMedidas, validarIdentificacao, validarSelecao, criarPedidoDemonstrativo } from "../data/novoPedido";
 
 const catalogoProdutos = [
   {
@@ -171,8 +177,14 @@ const produtosPorRegiao = {
   ]
 };
 
-export default function NovoPedido() {
-  const [formData, setFormData] = useState({});
+export default function NovoPedido({ navigation }) {
+  const { pedidos, setPedidos } = usePedidos();
+  const [formData, setFormData] = useState(novaIdentificacao);
+  const [dadosMedidas, setDadosMedidas] = useState(novoDadosMedidas);
+  const [fornecedor, setFornecedor] = useState("");
+  const [erros, setErros] = useState([]);
+  const [pedidoCriado, setPedidoCriado] = useState(null);
+  const confirmando = useRef(false);
   const [etapaAtual, setEtapaAtual] = useState(0);
   const [regioesSelecionadas, setRegioesSelecionadas] = useState([]);
   const [justificativaRegiao, setJustificativaRegiao] = useState("");
@@ -220,12 +232,68 @@ export default function NovoPedido() {
     );
   }
 
+  const produtosEscolhidos = catalogoProdutos.filter((p) => produtosSelecionados.includes(p.id));
+
+  function irParaEtapa(destino) {
+    const pendencias = [];
+    if (destino > etapaAtual) {
+      if (destino >= 1) pendencias.push(...validarIdentificacao(formData));
+      if (destino >= 2) pendencias.push(...validarSelecao(regioesSelecionadas, produtosEscolhidos));
+      if (destino >= 3) pendencias.push(...validarMedidasProdutos(produtosEscolhidos, dadosMedidas));
+    }
+    setErros([...new Set(pendencias)]);
+    if (!pendencias.length) setEtapaAtual(destino);
+  }
+
+  function confirmarPedido() {
+    if (confirmando.current) return;
+    confirmando.current = true;
+    try {
+      const pedido = criarPedidoDemonstrativo({ formData, regioes: regioesSelecionadas,
+        produtos: produtosEscolhidos, dadosMedidas, fornecedor, justificativa: justificativaRegiao }, pedidos);
+      setPedidos((anteriores) => [pedido, ...anteriores]);
+      setPedidoCriado(pedido.id);
+      setErros([]);
+    } catch (erro) {
+      setErros([erro.message]);
+      confirmando.current = false;
+    }
+  }
+
+  function iniciarNovo() {
+    setFormData(novaIdentificacao());
+    setDadosMedidas(novoDadosMedidas());
+    setRegioesSelecionadas([]);
+    setProdutosSelecionados([]);
+    setJustificativaRegiao("");
+    setBuscaProduto("");
+    setFornecedor("");
+    setErros([]);
+    setEtapaAtual(0);
+    setPedidoCriado(null);
+    confirmando.current = false;
+  }
+
   const etapas = [
     "1. Paciente e prescrição",
     "2. Região e produto",
     "3. Medidas e anexos",
     "4. Conferência"
   ];
+
+  if (pedidoCriado) return (
+    <ScrollView style={estilos.container} contentContainerStyle={estilos.conteudo}>
+      <View style={estilos.formulario}>
+        <Text style={estilos.tituloFormulario}>Pedido demonstrativo registrado</Text>
+        <Text style={estilos.rotuloCampo}>{pedidoCriado}</Text>
+        <Text style={estilos.descricao}>O pedido está disponível no Histórico e no Portal do fornecedor nesta sessão. Não houve envio real, nem armazenamento permanente.</Text>
+        <View style={estilos.navegacaoEtapas}>
+          <Pressable style={estilos.botaoVoltar} onPress={iniciarNovo}><Text style={estilos.textoVoltar}>Novo pedido</Text></Pressable>
+          <Pressable style={estilos.botaoContinuar} onPress={() => navigation.navigate("Historico", { pedidoId: pedidoCriado })}><Text style={estilos.textoContinuar}>Ver histórico →</Text></Pressable>
+        </View>
+      </View>
+    </ScrollView>
+  );
 
   return (
     <ScrollView
@@ -268,7 +336,7 @@ export default function NovoPedido() {
                 estilos.itemEtapa,
                 index === etapaAtual && estilos.itemEtapaAtiva
               ]}
-              onPress={() => setEtapaAtual(index)}
+              onPress={() => irParaEtapa(index)}
             >
               <Text style={[
                 estilos.textoEtapa,
@@ -299,10 +367,14 @@ export default function NovoPedido() {
           </Text>
 
           {etapaAtual === 0 && (
-            <IdentificacaoForm
-              formData={formData}
-              setFormData={setFormData}
-            />
+            <View>
+              <IdentificacaoForm formData={formData} setFormData={setFormData} />
+              <View style={estilos.navegacaoEtapas}>
+                <Pressable style={estilos.botaoContinuar} onPress={() => irParaEtapa(1)}>
+                  <Text style={estilos.textoContinuar}>Continuar →</Text>
+                </Pressable>
+              </View>
+            </View>
           )}
 
           {etapaAtual === 1 && (
@@ -441,14 +513,14 @@ export default function NovoPedido() {
               <View style={estilos.navegacaoEtapas}>
                 <Pressable
                   style={estilos.botaoVoltar}
-                  onPress={() => setEtapaAtual(0)}
+                  onPress={() => irParaEtapa(0)}
                 >
                   <Text style={estilos.textoVoltar}>Voltar</Text>
                 </Pressable>
 
                 <Pressable
                   style={estilos.botaoContinuar}
-                  onPress={() => setEtapaAtual(2)}
+                  onPress={() => irParaEtapa(2)}
                 >
                   <Text style={estilos.textoContinuar}>Continuar →</Text>
                 </Pressable>
@@ -456,26 +528,63 @@ export default function NovoPedido() {
             </View>
           )}
 
-          {etapaAtual > 1 && (
-            <View style={estilos.etapaPendente}>
-              <Text style={estilos.textoEtapaPendente}>
-                Esta etapa ainda será integrada ao módulo correspondente.
-              </Text>
+          {etapaAtual === 2 && (
+            <MedidasAnexos produtos={produtosEscolhidos} dados={dadosMedidas} onAlterar={setDadosMedidas}
+              onVoltar={() => irParaEtapa(1)} onContinuar={() => irParaEtapa(3)} />
+          )}
 
-              <Pressable
-                style={estilos.botaoVoltar}
-                onPress={() => setEtapaAtual((anterior) =>
-                  Math.max(0, anterior - 1)
-                )}
-              >
-                <Text style={estilos.textoVoltar}>Voltar</Text>
-              </Pressable>
+          {etapaAtual === 3 && (
+            <View style={estilos.etapaPendente}>
+              <View style={estilos.alertaSelecao}><Text style={estilos.textoAlertaSelecao}>SIMULAÇÃO — SEM DADOS REAIS. Registro em memória, sem envio externo.</Text></View>
+              <Resumo titulo="Paciente e prescrição" onEditar={() => irParaEtapa(0)}>
+                {[["Nome", formData.nome], ["Prontuário", formData.prontuario], ["Data de atendimento", formData.dataAtendimento],
+                  ["Idade", formData.idade], ["Cidade", formData.cidade], ["Endereço", formData.endereco], ["Telefone", formData.telefone],
+                  ["Peso (kg)", formData.peso], ["Altura (cm)", formData.altura], ["Profissional solicitante", formData.profissional],
+                  ["Tipo de solicitação", formData.tipoSolicitacao]].map(([rotulo, valor]) => <Text key={rotulo} style={estilos.descricaoEtapa}>{rotulo}: {valor || "Não informado"}</Text>)}
+              </Resumo>
+              <Resumo titulo="Regiões e produtos" onEditar={() => irParaEtapa(1)}>
+                <Text style={estilos.descricaoEtapa}>{regioesSelecionadas.map((r) => `${r.nome} (${r.vista === "frente" ? "frente" : "costas"})`).join("; ")}</Text>
+                {produtosEscolhidos.map((p) => <Text key={p.id} style={estilos.descricaoEtapa}>{p.descricao} · {p.codigo} · SUS {p.codigoSus}</Text>)}
+                <Text style={estilos.descricaoEtapa}>Justificativa: {justificativaRegiao || "Não informada"}</Text>
+              </Resumo>
+              <Resumo titulo="Medidas e anexos" onEditar={() => irParaEtapa(2)}>
+                {produtosEscolhidos.map((p) => <View key={p.id} style={{ gap: 4 }}>
+                  <Text style={estilos.rotuloCampo}>{p.descricao}</Text>
+                  <Text style={estilos.descricaoEtapa}>Acabamento: {dadosMedidas.fichas[p.id]?.modelo || "Não informado"}</Text>
+                  {Object.entries(dadosMedidas.fichas[p.id]?.medidas ?? {}).filter(([, v]) => String(v).trim()).map(([nome, valor]) => <Text key={nome} style={estilos.descricaoEtapa}>{nome}: {valor} cm</Text>)}
+                </View>)}
+                <Text style={estilos.descricaoEtapa}>Termo de imagem: {dadosMedidas.termoConferido ? "Conferido (simulação)" : "Não conferido"}</Text>
+                <Text style={estilos.descricaoEtapa}>Anexos fictícios: {dadosMedidas.fotos.length}</Text>
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>{dadosMedidas.fotos.map((foto, i) => <Image key={`${foto.uri}-${i}`} source={{ uri: foto.uri }} style={{ width: 64, height: 64, borderRadius: 6 }} />)}</View>
+              </Resumo>
+              <Text style={estilos.rotuloCampo}>Fornecedor demonstrativo *</Text>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                {FORNECEDORES.map((nome) => <Pressable key={nome} accessibilityRole="radio" accessibilityState={{ checked: fornecedor === nome }} onPress={() => { setFornecedor(nome); setErros([]); }}
+                  style={[estilos.botaoVoltar, fornecedor === nome && estilos.itemProdutoMarcado]}><Text style={estilos.rotuloCampo}>{nome}</Text></Pressable>)}
+              </View>
+              <View style={estilos.navegacaoEtapas}>
+                <Pressable style={estilos.botaoVoltar} onPress={() => irParaEtapa(2)}><Text style={estilos.textoVoltar}>Voltar</Text></Pressable>
+                <Pressable style={estilos.botaoContinuar} onPress={confirmarPedido}><Text style={estilos.textoContinuar}>Confirmar simulação</Text></Pressable>
+              </View>
             </View>
           )}
+          {erros.length > 0 && <View accessibilityRole="alert" style={[estilos.alertaSelecao, { marginTop: 12 }]}>
+            {erros.map((erro, i) => <Text key={i} style={estilos.textoAlertaSelecao}>{erro}</Text>)}
+          </View>}
         </View>
       </View>
     </ScrollView>
   );
+}
+
+function Resumo({ titulo, onEditar, children }) {
+  return <View style={{ gap: 6, padding: 12, borderRadius: 8, borderWidth: 1, borderColor: "#DDE8EE" }}>
+    <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
+      <Text style={estilos.rotuloCampo}>{titulo}</Text>
+      <Pressable onPress={onEditar}><Text style={estilos.textoVoltar}>Editar</Text></Pressable>
+    </View>
+    {children}
+  </View>;
 }
 
 const estilos = StyleSheet.create({

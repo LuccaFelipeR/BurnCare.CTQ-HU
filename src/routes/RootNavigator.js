@@ -6,6 +6,7 @@ import Sidebar from "../components/SideBar";
 import Home from "../pages/Home";
 import NovoPedido from "../pages/NovoPedido";
 import HistoricoPedidos from "../pages/HistoricoPedidos";
+import { PedidosProvider } from "../context/PedidosContext";
 
 const Stack = createNativeStackNavigator();
 
@@ -47,17 +48,17 @@ function TelaHome({ navigation }) {
 function TelaNovoPedido({ navigation }) {
   return (
     <Layout navigation={navigation} paginaAtual="NovoPedido">
-      <NovoPedido />
+      <NovoPedido navigation={navigation} />
     </Layout>
   );
 }
 
 
 // Histórico de pedidos
-function TelaHistorico({ navigation }) {
+function TelaHistorico({ navigation, route }) {
   return (
     <Layout navigation={navigation} paginaAtual="Historico">
-      <HistoricoPedidos />
+      <HistoricoPedidos route={route} />
     </Layout>
   );
 }
@@ -65,11 +66,13 @@ function TelaHistorico({ navigation }) {
 // Rotas principais
 export default function RootNavigator() {
   return (
+    <PedidosProvider>
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="VisaoGeral" component={TelaHome} />
       <Stack.Screen name="NovoPedido" component={TelaNovoPedido} />
       <Stack.Screen name="Historico" component={TelaHistorico} />
     </Stack.Navigator>
+    </PedidosProvider>
   );
 }
 
