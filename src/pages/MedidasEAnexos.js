@@ -1,352 +1,122 @@
-import React, { useState } from "react";
-import { Dropdown } from "react-native-element-dropdown";
-import {
-  View,
-  Text,
-  TextInput,
-  ScrollView,
-  Pressable,
-  Switch,
-  StyleSheet,
-  useWindowDimensions,
-  Alert,
-} from "react-native";
+import { useState } from "react";
+import { View, Text, TextInput, Pressable, StyleSheet, Image } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { CORES } from "./theme/cores";
+import { gabaritoDoProduto, validarMedidasProdutos } from "../data/gabaritosMedidas";
 
-const MEDIDAS = [
-    "Circunferência da Palma",
-    "Circunferência do Dorso",
-    "Circunferência do Punho",
-    "Circunferência do Polegar",
-    "Circunferência do Indicador",
-    "Circunferência do Dedo Médio",
-    "Circunferência do Anelar",
-    "Circunferência do Dedo mínimo",
-    "Altura da palma",
-    "Altura do polegar",
-    "Altura do indicador",
-    "Altura do dedo médio",
-    "Altura do anelar",
-    "Altura do dedo mínimo",
-    "Comprimento total da luva"
-];
-
-const OPCOES = [
-    { label: 'Escolher (se aplicável)', value: '1' },
-    { label: 'Fechada', value: '2' },
-    { label: 'Dedo longo sem costura', value: '3' },
-    { label: 'Com dedos abertos', value: '4' },
-    { label: 'Sem dedos', value: '5' },
-];
-
-function nomeMedida(index, nome){
-    if(index < 9) return `${index + 1} · ${nome}`;
-    if(index === 14) return `10 · ${nome}`;
-    return `${String.fromCharCode(97 + index - 9)} · ${nome}`;
-}
-
-export default function MedidasAnexos({navigation, OnVoltar, OnContinuar}){
-    const { width } = useWindowDimensions();
-  const compacto = width < 850;
-  const celular = width < 600;
-
-  const [modelo, setModelo] = useState("");
-  const [medidas, setMedidas] = useState({});
-  const [termoConferido, setTermoConferido] = useState(false);
-  const [fotos, setFotos] = useState([]);
+// Formulário de Ana Mantella, integrado ao estado de NovoPedido.
+// O layout externo e o menu de etapas pertencem ao NovoPedido.
+export default function MedidasAnexos({ produtos = [], dados, onAlterar, onVoltar, onContinuar }) {
+  const [ativo, setAtivo] = useState(produtos[0]?.id ?? "");
   const [erro, setErro] = useState("");
-
-  function atualizarMedida(nome, valor) {
-    setMedidas((anterior) => ({
-      ...anterior,
-      [nome]: valor,
-    }));
+  const [selecionando, setSelecionando] = useState(false);
+  const produto = produtos.find((item) => item.id === ativo) ?? produtos[0];
+  if (!produto || !dados || typeof onAlterar !== "function") {
+    return <Text style={styles.erro}>Selecione os produtos na etapa anterior para preencher as medidas.</Text>;
+  }
+  const ficha = dados.fichas[produto.id] ?? { modelo: "", medidas: {} };
+  const gabarito = gabaritoDoProduto(produto.id);
+  const fotos = dados.fotos;
+  function alterarFicha(atualizar) {
+    onAlterar((anterior) => ({ ...anterior, fichas: { ...anterior.fichas,
+      [produto.id]: atualizar(anterior.fichas[produto.id] ?? { modelo: "", medidas: {} })
+    } }));
     setErro("");
   }
-
   async function selecionarFotos() {
+    if (selecionando) return;
+    setSelecionando(true);
     try {
       const resultado = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
-        allowsMultipleSelection: true,
-        quality: 0.7,
+        mediaTypes: ["images"], allowsMultipleSelection: true, quality: 0.7,
       });
-
       if (!resultado.canceled) {
-        setFotos(resultado.assets || []);
+        onAlterar((anterior) => ({ ...anterior, fotos: resultado.assets ?? [] }));
+        setErro("");
       }
     } catch {
-      Alert.alert(
-        "Não foi possível selecionar as imagens",
-        "Tente novamente."
-      );
+      setErro("Não foi possível selecionar as imagens fictícias. Tente novamente.");
+    } finally {
+      setSelecionando(false);
     }
   }
-
   function continuar() {
-    const preenchidas = Object.values(medidas).filter(
-      (valor) => valor.trim() !== ""
-    );
-
-    if (preenchidas.length < 2) {
-      setErro("Preencha pelo menos duas medidas para continuar.");
+    const erros = validarMedidasProdutos(produtos, dados);
+    if (erros.length) {
+      setErro(erros.join("\n"));
+      const pendente = produtos.find((item) => validarMedidasProdutos([item], dados).length);
+      if (pendente) setAtivo(pendente.id);
       return;
     }
-
     setErro("");
-
-    onContinuar?.({
-      modelo,
-      medidas,
-      termoConferido,
-      quantidadeFotos: fotos.length,
-    });
+    onContinuar?.();
   }
-
-  const [value, setValue] = useState(null);
-
-  return(
-     <View style={styles.app}>
-      {/* ÁREA PRINCIPAL */}
-      <View style={styles.principal}>
-        <View style={styles.topbar}>
-          <View>
-            <Text style={styles.topTitulo}>Nova solicitação</Text>
-            <Text style={styles.topSubtitulo}>
-              Hospital Universitário de Londrina · CTQ
-            </Text>
-          </View>
+  return (
+    <View style={{ gap: 12, minWidth: 0 }}>
+      <Text style={styles.descricao}>Uma ficha de medidas por produto. Os campos reproduzem o protótipo de validação e as regras clínicas definitivas dependem do CTQ.</Text>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
+        {produtos.map((item) => (
+          <Pressable key={item.id} accessibilityRole="button" accessibilityState={{ selected: item.id === produto.id }}
+            onPress={() => { setAtivo(item.id); setErro(""); }}
+            style={[styles.opcaoModelo, item.id === produto.id && styles.opcaoModeloAtiva]}>
+            <Text style={[styles.opcaoTexto, item.id === produto.id && styles.opcaoTextoAtivo]}>{item.descricao}</Text>
+          </Pressable>
+        ))}
+      </View>
+      <View style={styles.info}>
+        <Text style={styles.infoTitulo}>{produto.descricao}</Text>
+        <Text style={styles.infoTexto}>{gabarito?.name ?? "Gabarito pendente"} · unidade: centímetros (cm).</Text>
+      </View>
+      {gabarito?.variants?.length > 0 && <View>
+        <Text style={styles.label}>Modelo / acabamento (se aplicável)</Text>
+        <View style={styles.modelos} accessibilityRole="radiogroup">
+          {["", ...gabarito.variants].map((modelo) => (
+            <Pressable key={modelo || "sem-modelo"} accessibilityRole="radio" accessibilityState={{ checked: ficha.modelo === modelo }}
+              onPress={() => alterarFicha((atual) => ({ ...atual, modelo }))}
+              style={[styles.opcaoModelo, ficha.modelo === modelo && styles.opcaoModeloAtiva]}>
+              <Text style={[styles.opcaoTexto, ficha.modelo === modelo && styles.opcaoTextoAtivo]}>{modelo || "Escolher (se aplicável)"}</Text>
+            </Pressable>
+          ))}
         </View>
-
-        <ScrollView
-          style={styles.scrollPrincipal}
-          contentContainerStyle={[
-            styles.conteudo,
-            celular && styles.conteudoCelular,
-          ]}
-        >
-          <Text style={styles.eyebrow}>
-            HOSPITAL UNIVERSITÁRIO
-          </Text>
-          <Text style={styles.titulo}>Solicitação de malha</Text>
-          <Text style={styles.subtitulo}>
-            Um único formulário, quatro etapas. A prescrição e a
-            mensuração são atividades distintas.
-          </Text>
-
-          <View
-            style={[
-              styles.workspace,
-              compacto && styles.workspaceCompacto,
-            ]}
-          >
-
-            <View
-              style={[
-                styles.etapas,
-                compacto && styles.etapasCompactas,
-              ]}
-            >
-              {[
-                //
-              ].map((nome, index) => {
-                const concluida = index < 2;
-                const atual = index === 2;
-
-                return (
-                  <View
-                    key={nome}
-                    style={[
-                      styles.etapa,
-                      atual && styles.etapaAtual,
-                    ]}
-                  >
-                    <View
-                      style={[
-                        styles.etapaNumero,
-                        (concluida || atual) &&
-                          styles.etapaNumeroAtivo,
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.etapaNumeroTexto,
-                          (concluida || atual) &&
-                            styles.etapaNumeroTextoAtivo,
-                        ]}
-                      >
-                        {concluida ? "✓" : index + 1}
-                      </Text>
-                    </View>
-                    <Text
-                      style={[
-                        styles.etapaTexto,
-                        atual && styles.etapaTextoAtual,
-                      ]}
-                    >
-                      {nome}
-                    </Text>
-                  </View>
-                );
-              })}
-            </View>
-
-            {/* CARTÃO DO FORMULÁRIO */}
-            <View style={styles.cartao}>
-              <Text style={styles.cartaoEyebrow}>
-                ETAPA 3 DE 4 · MEDIDAS E ANEXOS
-              </Text>
-
-              <View style={styles.divisor} />
-
-              <Text style={styles.tituloSecao}>Medidas e anexos</Text>
-              <Text style={styles.descricao}>
-                Os campos abaixo reproduzem os títulos dos sete
-                gabaritos de medidas recebidos. Cada peça possui
-                sua própria ficha.
-              </Text>
-
-              <View style={styles.abaSelecionada}>
-                <Text style={styles.abaTexto}>
-                  1. Luvas com dedos até o punho
-                </Text>
-              </View>
-
-              <View style={styles.info}>
-                <Text style={styles.infoTitulo}>
-                  Luvas com dedos até o punho — mão direita
-                </Text>
-                <Text style={styles.infoTexto}>
-                  Medidas da mão · gabarito, pág. 1 · unidade:
-                  centímetros (cm). Campos obrigatórios definitivos
-                  pendentes de validação clínica.
-                </Text>
-              </View>
-
-                <Text style={styles.label}>
-                Modelo / acabamento (conforme gabarito)
-                </Text>
-
-                <Dropdown
-                style={styles.dropdown}
-                selectedTextStyle={styles.textoSelecionado}
-                data={OPCOES}
-                labelField="label"
-                valueField="value"
-                placeholder="Selecione o modelo / acabamento"
-                value={value}
-                onChange={(item) => setValue(item.value)}
-                />
-              {/* CAMPOS DE MEDIDAS */}
-              <View style={styles.listaMedidas}>
-                {MEDIDAS.map((nome, index) => (
-                  <View key={nome} style={styles.linhaMedida}>
-                    <Text style={styles.nomeMedida}>
-                      {nomeMedida(index, nome)}
-                    </Text>
-
-                    <View style={styles.campoUnidade}>
-                      <TextInput
-                        value={medidas[nome] ?? ""}
-                        onChangeText={(valor) =>
-                          atualizarMedida(nome, valor)
-                        }
-                        keyboardType="decimal-pad"
-                        placeholder=" "
-                        accessibilityLabel={`${nome}, em centímetros`}
-                        style={styles.inputMedida}
-                      />
-                      <Text style={styles.unidade}>cm</Text>
-                    </View>
-                  </View>
-                ))}
-              </View>
-
-              <View style={styles.aviso}>
-                <Text style={styles.avisoTexto}>
-                  A demonstração exige duas medidas preenchidas por
-                  produto; em produção, a equipe do CTQ deverá
-                  confirmar todas as medidas obrigatórias por modelo.
-                </Text>
-              </View>
-
-              <View style={styles.divisor} />
-
-              <Text style={styles.tituloDocumentacao}>
-                Documentação de apoio
-              </Text>
-
-              <Pressable
-                onPress={() => setTermoConferido(!termoConferido)}
-                style={styles.termo}
-              >
-                <View
-                  style={[
-                    styles.checkbox,
-                    termoConferido && styles.checkboxAtivo,
-                  ]}
-                >
-                  {termoConferido && (
-                    <Text style={styles.checkTexto}>✓</Text>
-                  )}
-                </View>
-
-                <View style={styles.termoTexto}>
-                  <Text style={styles.termoTitulo}>
-                    Termo de autorização de imagem conferido
-                  </Text>
-                </View>
-              </Pressable>
-
-              <Text style={styles.label}>
-                Fotos da cicatriz
-              </Text>
-
-              <Pressable
-                onPress={selecionarFotos}
-                style={styles.upload}
-              >
-                <Text style={styles.uploadBotao}>
-                  Escolher arquivos
-                </Text>
-                <Text style={styles.uploadTexto}>
-                  {fotos.length === 0
-                    ? "Nenhum arquivo escolhido"
-                    : `${fotos.length} imagem(ns) selecionada(s)`}
-                </Text>
-              </Pressable>
-
-              {erro !== "" && (
-                <Text style={styles.erro}>{erro}</Text>
-              )}
+      </View>}
+      {gabarito && <View style={styles.listaMedidas}>
+        {gabarito.fields.map((nome) => (
+          <View key={nome} style={styles.linhaMedida}>
+            <Text style={styles.nomeMedida}>{nome}</Text>
+            <View style={styles.campoUnidade}>
+              <TextInput accessibilityLabel={`${nome}, em centímetros`} keyboardType="decimal-pad"
+                value={ficha.medidas[nome] ?? ""} onChangeText={(valor) => alterarFicha((atual) => ({ ...atual, medidas: { ...atual.medidas, [nome]: valor } }))}
+                style={styles.inputMedida} placeholder="0" />
+              <Text style={styles.unidade}>cm</Text>
             </View>
           </View>
-
-          {/* BOTÕES */}
-          <View
-            style={[
-              styles.acoes,
-              compacto && styles.acoesCompactas,
-            ]}
-          >
-            <Pressable
-              onPress={OnVoltar}
-              style={styles.botaoVoltar}
-            >
-              <Text style={styles.textoVoltar}>← Voltar</Text>
-            </Pressable>
-
-            <Pressable
-              onPress={OnContinuar}
-              style={styles.botaoContinuar}
-            >
-              <Text style={styles.textoContinuar}>
-                Continuar →
-              </Text>
-            </Pressable>
-          </View>
-        </ScrollView>
+        ))}
+      </View>}
+      <View style={styles.aviso}><Text style={styles.avisoTexto}>Preencha pelo menos duas medidas positivas por produto para a demonstração. Não se trata de uma exigência clínica validada.</Text></View>
+      <View style={styles.divisor} />
+      <Text style={styles.tituloDocumentacao}>Documentação de apoio</Text>
+      <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: dados.termoConferido }}
+        onPress={() => onAlterar((anterior) => ({ ...anterior, termoConferido: !anterior.termoConferido }))} style={styles.termo}>
+        <View style={[styles.checkbox, dados.termoConferido && styles.checkboxAtivo]}>{dados.termoConferido && <Text style={styles.checkTexto}>✓</Text>}</View>
+        <View style={styles.termoTexto}><Text style={styles.termoTitulo}>Termo de autorização de imagem conferido (simulação)</Text></View>
+      </Pressable>
+      <Text style={styles.label}>Imagens fictícias de demonstração</Text>
+      <Pressable onPress={selecionarFotos} disabled={selecionando} style={styles.upload}>
+        <Text style={styles.uploadBotao}>{selecionando ? "Selecionando…" : "Escolher arquivos"}</Text>
+        <Text style={styles.uploadTexto}>{fotos.length} imagem(ns) selecionada(s)</Text>
+      </Pressable>
+      <Text style={styles.infoTexto}>Não selecione fotografias reais de pacientes. As imagens ficam apenas nesta sessão.</Text>
+      {fotos.map((foto, index) => <View key={`${foto.uri}-${index}`} style={styles.upload}>
+        <Image source={{ uri: foto.uri }} style={{ width: 48, height: 48, borderRadius: 5 }} />
+        <Text style={[styles.uploadTexto, { flex: 1 }]}>{foto.fileName || `Imagem ${index + 1}`}</Text>
+        <Pressable accessibilityLabel={`Remover imagem ${index + 1}`} onPress={() => onAlterar((anterior) => ({ ...anterior, fotos: anterior.fotos.filter((_, i) => i !== index) }))}>
+          <Text style={styles.textoVoltar}>Remover</Text>
+        </Pressable>
+      </View>)}
+      {erro !== "" && <Text accessibilityRole="alert" style={styles.erro}>{erro}</Text>}
+      <View style={[styles.acoes, styles.acoesCompactas]}>
+        <Pressable onPress={onVoltar} disabled={selecionando} style={styles.botaoVoltar}><Text style={styles.textoVoltar}>← Voltar</Text></Pressable>
+        <Pressable onPress={continuar} disabled={selecionando} style={styles.botaoContinuar}><Text style={styles.textoContinuar}>Continuar →</Text></Pressable>
       </View>
     </View>
   );
@@ -355,10 +125,8 @@ export default function MedidasAnexos({navigation, OnVoltar, OnContinuar}){
 const styles = StyleSheet.create({
     app: {
     flex: 1,
-    minHeight: "100vh",
     flexDirection: "row",
     backgroundColor: CORES.fundo,
-    fontFamily: "Arial, sans-serif",
   },
   principal: {
     flex: 1,
@@ -424,6 +192,7 @@ const styles = StyleSheet.create({
   },
   workspaceCompacto: {
     flexDirection: "column",
+    alignItems: "stretch",
   },
   etapas: {
     width: 174,
@@ -607,7 +376,6 @@ const styles = StyleSheet.create({
     paddingRight: 32,
     color: "#173650",
     fontSize: 13,
-    outlineStyle: "none",
   },
   unidade: {
     position: "absolute",
@@ -735,18 +503,5 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 13,
     fontWeight: "bold",
-  },
-  dropdown: {
-    height: 40,
-    borderColor: "#D8E5EC",
-    borderWidth: 1.5,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-  },
-  textoSelecionado: {
-    fontSize: 12
-  },
-  label: {
-    fontSize: 12, fontWeight: 'bold', marginBottom: 8
   }
 });

@@ -5,6 +5,7 @@ import {
   Text,
   TextInput,
   View,
+  Platform,
   useWindowDimensions
 } from "react-native";
 
@@ -85,13 +86,13 @@ function Campo({ campo, valor, onChangeText, isMobile }) {
     >
       <Text style={estilos.rotulo}>{campo.rotulo}</Text>
 
-      {ehData ? (
+      {ehData && Platform.OS === "web" ? (
         <input
           aria-label={campo.rotulo}
           type="date"
           value={valor || ""}
           onChange={(event) => onChangeText(event.currentTarget.value)}
-          style={estilos.entradaData}
+          style={entradaDataWeb}
         />
       ) : (
         <TextInput
@@ -99,7 +100,7 @@ function Campo({ campo, valor, onChangeText, isMobile }) {
           style={estilos.entrada}
           value={valor}
           onChangeText={onChangeText}
-          placeholder={campo.placeholder}
+          placeholder={ehData ? "AAAA-MM-DD" : campo.placeholder}
           placeholderTextColor="rgba(0, 0, 0, 0.31)"
           keyboardType={campo.keyboardType || "default"}
         />
@@ -228,6 +229,18 @@ export default function IdentificacaoForm({
   );
 }
 
+const entradaDataWeb = {
+    width: "100%",
+    boxSizing: "border-box",
+    minHeight: 42,
+    border: "1px solid #CBD5E1",
+    borderRadius: 6,
+    padding: "8px 10px",
+    fontSize: 14,
+    color: "#1E293B",
+    backgroundColor: "#FFFFFF"
+  };
+
 const estilos = StyleSheet.create({
   container: {
     gap: 20,
@@ -266,7 +279,7 @@ const estilos = StyleSheet.create({
 
   rotulo: {
     fontSize: 13,
-    fontWeight: "650",
+    fontWeight: "600",
     color: "#334155"
 
   },
@@ -279,19 +292,6 @@ const estilos = StyleSheet.create({
     borderRadius: 6,
     paddingHorizontal: 10,
     paddingVertical: 8,
-    fontSize: 14,
-    color: "#1E293B",
-    backgroundColor: "#FFFFFF"
-  },
-  entradaData: {
-    minHeight: 42,
-    borderWidth: 1,
-    borderColor: "#cbd5e1",
-    borderRadius: 6,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    paddingLeft: 10,
-    alignItems: "center",
     fontSize: 14,
     color: "#1E293B",
     backgroundColor: "#FFFFFF"

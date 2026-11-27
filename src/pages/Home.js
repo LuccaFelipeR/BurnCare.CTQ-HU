@@ -1,14 +1,14 @@
 import { View, Text, Pressable, ScrollView, StyleSheet } from "react-native";
 import CardIndicador from "../components/CardIndicador";
+import StatusBadge from "../components/acompanhamento/StatusBadge";
+import { usePedidos } from "../context/PedidosContext";
+import { calcularIndicadores } from "../data/acompanhamentoPedidos";
 
 export default function Home({ navigation }) {
-  // Indicadores sem dados reais por enquanto
-  const indicadores = [
-    { titulo: "Pedidos em aberto", valor: 0 },
-    { titulo: "Em produção", valor: 0 },
-    { titulo: "Aguardando prova", valor: 0 },
-    { titulo: "Concluídos", valor: 0 }
-  ];
+  const { pedidos } = usePedidos();
+  const indicadores = calcularIndicadores(pedidos).map((indicador) =>
+    indicador.titulo === "Em produção" ? { ...indicador, titulo: "Fornecedor e logística" } : indicador);
+  const recentes = [...pedidos].sort((a, b) => b.dataPedido.split("/").reverse().join("").localeCompare(a.dataPedido.split("/").reverse().join("")) || b.id.localeCompare(a.id)).slice(0, 5);
 
   return (
     <ScrollView
@@ -47,16 +47,14 @@ export default function Home({ navigation }) {
 
       <Text style={estilos.secao}>Pedidos recentes</Text>
 
-      <View style={estilos.cartao}>
-        <Text style={estilos.cartaoTitulo}>
-          Nenhum pedido disponível
-        </Text>
-
-        <Text style={estilos.descricao}>
-          Os pedidos recentes serão exibidos aqui
-          quando o sistema estiver integrado.
-        </Text>
-      </View>
+      {recentes.length === 0 ? <View style={estilos.cartao}><Text style={estilos.cartaoTitulo}>Nenhum pedido disponível</Text></View> : recentes.map((pedido) => (
+        <Pressable key={pedido.id} style={[estilos.cartao, { gap: 6 }]} onPress={() => navigation.navigate("Historico", { pedidoId: pedido.id })}>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", gap: 6 }}>
+            <Text style={estilos.cartaoTitulo}>{pedido.id} · {pedido.paciente}</Text><StatusBadge status={pedido.status} />
+          </View>
+          <Text style={estilos.descricao}>{pedido.produto} · {pedido.dataPedido}</Text>
+        </Pressable>
+      ))}
 
       <Text style={estilos.secao}>Acesso rápido</Text>
 
@@ -81,7 +79,7 @@ export default function Home({ navigation }) {
       </View>
 
       <Text style={estilos.aviso}>
-        Ambiente demonstrativo — sem dados reais de pacientes.
+        Ambiente demonstrativo — dados fictícios, alterações apenas nesta sessão.
       </Text>
     </ScrollView>
   );

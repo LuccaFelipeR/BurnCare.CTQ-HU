@@ -6,11 +6,12 @@
 //  - Equipe CTQ: histórico completo, recebimento/conferência, prova, ajustes e entrega
 //  - Portal do fornecedor: só dados de confecção (sem identificação do paciente)
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   View,
   Text,
   TextInput,
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -25,19 +26,29 @@ import ReciboEntrega from "../components/acompanhamento/ReciboEntrega";
 import {
   ATOR,
   FILTROS,
-  PEDIDOS_FICTICIOS,
   aplicarAcao,
   contarPorFiltro,
   filtrarPedidos
 } from "../data/acompanhamentoPedidos";
+import { usePedidos } from "../context/PedidosContext";
 
-export default function HistoricoPedidos() {
-  const [pedidos, setPedidos] = useState(PEDIDOS_FICTICIOS);
+export default function HistoricoPedidos({ route }) {
+  const { pedidos, setPedidos } = usePedidos();
   const [visao, setVisao] = useState(ATOR.CTQ);
   const [filtro, setFiltro] = useState("TODOS");
   const [busca, setBusca] = useState("");
   const [idSelecionado, setIdSelecionado] = useState(null);
   const [mensagem, setMensagem] = useState("");
+  const pedidoId = route?.params?.pedidoId;
+  useEffect(() => {
+    if (pedidoId) {
+      setVisao(ATOR.CTQ);
+      setFiltro("TODOS");
+      setBusca("");
+      setIdSelecionado(pedidoId);
+      setMensagem("");
+    }
+  }, [pedidoId]);
 
   const { width } = useWindowDimensions();
   // Lista e detalhe lado a lado só em telas largas (a sidebar ocupa 246px)
@@ -148,6 +159,25 @@ export default function HistoricoPedidos() {
         </View>
       </View>
 
+      {selecionado.identificacao && <View style={estilos.cartao}>
+        <Text style={estilos.secao}>Identificação e prescrição</Text>
+        <View style={estilos.grade}>
+          {[["Data de atendimento", selecionado.identificacao.dataAtendimento], ["Profissional", selecionado.identificacao.profissional],
+            ["Idade", selecionado.identificacao.idade], ["Peso (kg)", selecionado.identificacao.peso], ["Altura (cm)", selecionado.identificacao.altura],
+            ["Cidade", selecionado.identificacao.cidade], ["Endereço", selecionado.identificacao.endereco], ["Telefone", selecionado.identificacao.telefone]].map(([rotulo, valor]) => <Info key={rotulo} rotulo={rotulo} valor={valor || "Não informado"} />)}
+        </View>
+        <Text style={estilos.texto}>Justificativa: {selecionado.justificativa || "Não informada"}</Text>
+      </View>}
+      {Object.keys(selecionado.medidas ?? {}).length > 0 && <View style={estilos.cartao}>
+        <Text style={estilos.secao}>Medidas e acabamentos</Text>
+        {Object.entries(selecionado.medidas).map(([nome, valor]) => <Text key={nome} style={estilos.texto}>{nome}: {valor}</Text>)}
+      </View>}
+      {selecionado.fotos && <View style={estilos.cartao}>
+        <Text style={estilos.secao}>Anexos fictícios</Text>
+        <Text style={estilos.texto}>Termo de imagem: {selecionado.termoConferido ? "Conferido (simulação)" : "Não conferido"} · {selecionado.fotos.length} imagem(ns)</Text>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>{selecionado.fotos.map((foto, i) => <Image key={`${foto.uri}-${i}`} source={{ uri: foto.uri }} style={{ width: 72, height: 72, borderRadius: 6 }} />)}</View>
+      </View>}
+
       {mensagem !== "" && (
         <View style={estilos.sucesso}>
           <Text style={estilos.textoSucesso}>{mensagem}</Text>
@@ -250,7 +280,7 @@ export default function HistoricoPedidos() {
       )}
 
       <Text style={estilos.aviso}>
-        Ambiente demonstrativo — dados fictícios, sem armazenamento.
+        Ambiente demonstrativo — dados fictícios mantidos nesta sessão, sem armazenamento permanente.
       </Text>
     </ScrollView>
   );
