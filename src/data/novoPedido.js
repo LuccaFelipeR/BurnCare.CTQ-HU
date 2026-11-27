@@ -20,10 +20,11 @@ export function validarSelecao(regioes, produtos) {
   return erros;
 }
 
-export function validarPedido({ formData, regioes, produtos, dadosMedidas, fornecedor }) {
+// fornecedoresDisponiveis: nomes dos fornecedores ATIVOS do cadastro (FornecedoresContext).
+export function validarPedido({ formData, regioes, produtos, dadosMedidas, fornecedor, fornecedoresDisponiveis = FORNECEDORES }) {
   return [...validarIdentificacao(formData), ...validarSelecao(regioes, produtos),
     ...validarMedidasProdutos(produtos, dadosMedidas),
-    ...(!FORNECEDORES.includes(fornecedor) ? ["Escolha um fornecedor demonstrativo."] : [])];
+    ...(!fornecedoresDisponiveis.includes(fornecedor) ? ["Escolha um fornecedor ativo do cadastro."] : [])];
 }
 
 export function criarPedidoDemonstrativo(dados, pedidos, hoje = dataHoje()) {
@@ -61,6 +62,6 @@ export function criarPedidoDemonstrativo(dados, pedidos, hoje = dataHoje()) {
     termoConferido: Boolean(dadosMedidas.termoConferido), fotos: [...dadosMedidas.fotos],
     status: STATUS.ENVIADO_CONFECCAO, ajustes: [], entrega: null,
     historico: [{ data: hoje, status: STATUS.ENVIADO_CONFECCAO,
-      descricao: "Pedido fictício registrado nesta sessão. Encaminhamento à confecção apenas simulado, sem envio externo.", responsavel: "Equipe CTQ (simulação)" }],
+      descricao: "Pedido fictício registrado nesta sessão e encaminhado à confecção.", responsavel: "Equipe CTQ (simulação)" }],
   };
 }

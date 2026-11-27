@@ -2,7 +2,7 @@ import { useState } from "react";
 import { View, Text, TextInput, Pressable, StyleSheet, Image } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { CORES } from "./theme/cores";
-import { gabaritoDoProduto, validarMedidasProdutos } from "../data/gabaritosMedidas";
+import { gabaritoDoProduto, opcoesDeModelo, validarMedidasProdutos } from "../data/gabaritosMedidas";
 
 // Formulário de Ana Mantella, integrado ao estado de NovoPedido.
 // O layout externo e o menu de etapas pertencem ao NovoPedido.
@@ -70,11 +70,12 @@ export default function MedidasAnexos({ produtos = [], dados, onAlterar, onVolta
       {gabarito?.variants?.length > 0 && <View>
         <Text style={styles.label}>Modelo / acabamento (se aplicável)</Text>
         <View style={styles.modelos} accessibilityRole="radiogroup">
-          {["", ...gabarito.variants].map((modelo) => (
-            <Pressable key={modelo || "sem-modelo"} accessibilityRole="radio" accessibilityState={{ checked: ficha.modelo === modelo }}
-              onPress={() => alterarFicha((atual) => ({ ...atual, modelo }))}
+          {opcoesDeModelo(gabarito).map((modelo) => (
+            <Pressable key={modelo} accessibilityRole="radio" accessibilityState={{ checked: ficha.modelo === modelo }}
+              // Tocar de novo na opção marcada desfaz a escolha.
+              onPress={() => alterarFicha((atual) => ({ ...atual, modelo: atual.modelo === modelo ? "" : modelo }))}
               style={[styles.opcaoModelo, ficha.modelo === modelo && styles.opcaoModeloAtiva]}>
-              <Text style={[styles.opcaoTexto, ficha.modelo === modelo && styles.opcaoTextoAtivo]}>{modelo || "Escolher (se aplicável)"}</Text>
+              <Text style={[styles.opcaoTexto, ficha.modelo === modelo && styles.opcaoTextoAtivo]}>{modelo}</Text>
             </Pressable>
           ))}
         </View>

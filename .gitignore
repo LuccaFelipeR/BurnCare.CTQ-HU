@@ -10,3 +10,6 @@ coverage/
 .idea/
 *.local
 .expo/
+# Supabase CLI (arquivos locais)
+supabase/.temp/
+supabase/.branches/

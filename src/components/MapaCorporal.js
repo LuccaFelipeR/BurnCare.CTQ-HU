@@ -15,22 +15,27 @@ const nomesDasVistas = {
 const LARGURA_MAPA = 210;
 const ALTURA_MAPA = 350;
 
+// O id da região é o mesmo na frente e nas costas: os produtos são associados
+// pelo id em NovoPedido. O lado (direito/esquerdo) é sempre o do PACIENTE.
 const regioes = [
   {
     id: "cabeca",
     nome: "Cabeça",
+    nomeCostas: "Cabeça e nuca",
     desenho: "M45 25a15 15 0 1 0 30 0a15 15 0 1 0-30 0",
     area: { x: 40, y: 8, width: 40, height: 36 }
   },
   {
     id: "tronco",
     nome: "Tronco",
+    nomeCostas: "Costas (dorso)",
     desenho: "M45 44H75L79 64L72 101H48L41 64Z",
     area: { x: 38, y: 42, width: 44, height: 62 }
   },
   {
     id: "quadril",
     nome: "Quadril",
+    nomeCostas: "Glúteos / quadril",
     desenho: "M48 103H72L79 122H41Z",
     area: { x: 38, y: 101, width: 44, height: 24 }
   },
@@ -83,6 +88,13 @@ const regioes = [
     area: { x: 59, y: 122, width: 31, height: 70 }
   }
 ];
+
+// Ids das regiões clicáveis: usado para garantir que toda região tenha produtos.
+export const IDS_REGIOES_MAPA = regioes.map((regiao) => regiao.id);
+
+// Nome exibido conforme a vista (ex.: "Tronco" na frente, "Costas (dorso)" atrás).
+export const nomeDaRegiao = (regiao, vista) =>
+  vista === "costas" && regiao.nomeCostas ? regiao.nomeCostas : regiao.nome;
 
 const primeiraCoordenada = (...valores) =>
   valores.find((valor) => Number.isFinite(valor));
@@ -193,7 +205,7 @@ export default function MapaCorporal({ selecionadas, onChange }) {
 
     onChange([
       ...selecionadas,
-      { id, vista, regiao: regiao.id, nome: regiao.nome }
+      { id, vista, regiao: regiao.id, nome: nomeDaRegiao(regiao, vista) }
     ]);
   };
 
@@ -301,7 +313,7 @@ export default function MapaCorporal({ selecionadas, onChange }) {
               <Pressable
                 key={regiao.id}
                 accessibilityRole="button"
-                accessibilityLabel={regiao.nome}
+                accessibilityLabel={nomeDaRegiao(regiao, vista)}
                 accessibilityState={{ selected: marcada }}
                 style={[
                   estilos.alvoRegiao,

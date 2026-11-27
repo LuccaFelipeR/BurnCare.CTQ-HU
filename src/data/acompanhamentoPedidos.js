@@ -12,6 +12,8 @@
 //  Ajuste: mantém o MESMO pedido -> logística reversa ao fornecedor -> fornecedor reposta
 //          -> nova conferência e nova prova
 
+import { FORNECEDORES_INICIAIS } from "./fornecedores";
+
 // ---------------------------------------------------------------------------
 // Status
 // ---------------------------------------------------------------------------
@@ -39,7 +41,9 @@ export const INFO_STATUS = {
 
 export const ATOR = { CTQ: "CTQ", FORNECEDOR: "FORNECEDOR" };
 
-export const FORNECEDORES = ["Fornecedor Exemplo 1", "Fornecedor Exemplo 2"];
+// Nomes dos fornecedores iniciais. O cadastro completo (e-mail, CNPJ...) fica em
+// src/data/fornecedores.js e é editável na tela "Fornecedores" (FornecedoresContext).
+export const FORNECEDORES = FORNECEDORES_INICIAIS.map((fornecedor) => fornecedor.nome);
 
 // Filtros da visão do CTQ
 export const FILTROS = [
@@ -465,8 +469,7 @@ const PRODUCAO = (data, f) => H(data, STATUS.EM_PRODUCAO, "Fornecedor confirmou 
 const POSTAGEM = (data, f, r) => H(data, STATUS.EM_TRANSPORTE, `Malha postada pelo fornecedor. Rastreio: ${r}.`, f);
 const RECEBIDA = (data) => H(data, STATUS.AGUARDANDO_PROVA, "Malha recebida por Enfermagem (fictício). Conferência conforme o pedido.");
 
-const F1 = "Fornecedor Exemplo 1";
-const F2 = "Fornecedor Exemplo 2";
+const [F1, F2] = FORNECEDORES;
 
 export const PEDIDOS_FICTICIOS = [
   {

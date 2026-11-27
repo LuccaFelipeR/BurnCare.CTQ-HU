@@ -158,6 +158,14 @@ export function gabaritoDoProduto(id) {
   return GABARITOS[GABARITO_POR_PRODUTO[id]] ?? null;
 }
 
+// Opção explícita para quando nenhum modelo/acabamento se aplica ao produto.
+export const MODELO_NAO_APLICAVEL = "Não aplicável";
+
+// Modelos do gabarito + "Não aplicável" (sempre a última opção).
+export function opcoesDeModelo(gabarito) {
+  return [...(gabarito?.variants ?? []), MODELO_NAO_APLICAVEL];
+}
+
 export function medidaNumerica(valor) {
   const texto = String(valor ?? "").trim().replace(",", ".");
   if (!/^\d+(?:\.\d+)?$/.test(texto)) return null;
@@ -182,7 +190,7 @@ export function validarMedidasProdutos(produtos, dados = {}) {
     } else if (preenchidas.length < 2) {
       erros.push(`${produto.descricao}: informe pelo menos duas medidas válidas para a demonstração.`);
     }
-    if (ficha.modelo && !(gabarito.variants ?? []).includes(ficha.modelo)) {
+    if (ficha.modelo && !opcoesDeModelo(gabarito).includes(ficha.modelo)) {
       erros.push(`${produto.descricao}: acabamento não corresponde ao gabarito.`);
     }
   }

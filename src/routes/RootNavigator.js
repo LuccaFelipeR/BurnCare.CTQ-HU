@@ -6,7 +6,9 @@ import Sidebar from "../components/SideBar";
 import Home from "../pages/Home";
 import NovoPedido from "../pages/NovoPedido";
 import HistoricoPedidos from "../pages/HistoricoPedidos";
+import CadastroFornecedores from "../pages/CadastroFornecedores";
 import { PedidosProvider } from "../context/PedidosContext";
+import { FornecedoresProvider } from "../context/FornecedoresContext";
 
 const Stack = createNativeStackNavigator();
 
@@ -63,15 +65,27 @@ function TelaHistorico({ navigation, route }) {
   );
 }
 
+// Cadastro de fornecedores
+function TelaFornecedores({ navigation }) {
+  return (
+    <Layout navigation={navigation} paginaAtual="Fornecedores">
+      <CadastroFornecedores />
+    </Layout>
+  );
+}
+
 // Rotas principais
 export default function RootNavigator() {
   return (
     <PedidosProvider>
+    <FornecedoresProvider>
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="VisaoGeral" component={TelaHome} />
       <Stack.Screen name="NovoPedido" component={TelaNovoPedido} />
       <Stack.Screen name="Historico" component={TelaHistorico} />
+      <Stack.Screen name="Fornecedores" component={TelaFornecedores} />
     </Stack.Navigator>
+    </FornecedoresProvider>
     </PedidosProvider>
   );
 }

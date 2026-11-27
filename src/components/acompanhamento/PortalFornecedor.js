@@ -8,14 +8,15 @@ import { View, Text, Pressable, StyleSheet, useWindowDimensions } from "react-na
 import StatusBadge from "./StatusBadge";
 import LinhaDoTempo from "./LinhaDoTempo";
 import PainelAcao from "./PainelAcao";
-import {
-  ATOR,
-  FORNECEDORES,
-  pedidosDoFornecedor
-} from "../../data/acompanhamentoPedidos";
+import { ATOR, pedidosDoFornecedor } from "../../data/acompanhamentoPedidos";
+import { useFornecedores } from "../../context/FornecedoresContext";
 
 export default function PortalFornecedor({ pedidos, onRegistrar }) {
-  const [fornecedor, setFornecedor] = useState(FORNECEDORES[0]);
+  const { fornecedores } = useFornecedores();
+  const nomesFornecedores = fornecedores.map((f) => f.nome);
+  const [escolhido, setFornecedor] = useState(nomesFornecedores[0] ?? "");
+  // Se o fornecedor escolhido for renomeado/removido, volta para o primeiro da lista.
+  const fornecedor = nomesFornecedores.includes(escolhido) ? escolhido : nomesFornecedores[0] ?? "";
   const [somentePendentes, setSomentePendentes] = useState(true);
   const [idSelecionado, setIdSelecionado] = useState(null);
   const [mensagem, setMensagem] = useState("");
@@ -48,7 +49,7 @@ export default function PortalFornecedor({ pedidos, onRegistrar }) {
     <View style={[estilos.coluna, duasColunas && estilos.colunaLista]}>
       <Text style={estilos.rotuloSecao}>Entrar como (simulação)</Text>
       <View style={estilos.chips}>
-        {FORNECEDORES.map((nome) => (
+        {nomesFornecedores.map((nome) => (
           <Chip key={nome} ativo={fornecedor === nome} onPress={() => trocarFornecedor(nome)}>
             {nome}
           </Chip>

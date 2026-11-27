@@ -48,11 +48,14 @@ Branches antigas desenvolvidas nessa arquitetura permanecem como referência his
 
 ### 3.1. Navegação principal
 
-A aplicação possui três rotas:
+A aplicação possui quatro rotas:
 
 - **Visão Geral**
 - **Novo Pedido**
 - **Histórico de Pedidos**
+- **Fornecedores** (cadastro das confecções e do e-mail que recebe os pedidos)
+
+> Envio de e-mail ao fornecedor: o código está pronto, mas fica desativado por padrão. Para ativar, siga [docs/INTEGRACAO_EMAIL.md](docs/INTEGRACAO_EMAIL.md).
 
 A navegação é centralizada em `RootNavigator.js`, utilizando React Navigation.
 
